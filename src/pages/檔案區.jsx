@@ -42,28 +42,33 @@ export default function 檔案區({ 儲存區域類型 }) {
   const 篩選後檔案 = useMemo(() => {
     let result = 所有檔案;
     if (選擇組別) result = result.filter(f => f.所屬組別 === 選擇組別);
-    if (目前資料夾) {
-      result = result.filter(f => f.所屬資料夾 === 目前資料夾.id);
-    } else if (選擇組別) {
-      result = result.filter(f => !f.所屬資料夾);
-    }
+    // 若在搜尋模式，不限資料夾
     if (搜尋關鍵字) {
       const kw = 搜尋關鍵字.toLowerCase();
-      result = result.filter(f => f.檔案名稱?.toLowerCase().includes(kw));
+      return result.filter(f => f.檔案名稱?.toLowerCase().includes(kw));
+    }
+    if (目前資料夾) {
+      result = result.filter(f => f.所屬資料夾 === 目前資料夾.id);
+    } else {
+      // 根層：只顯示沒有資料夾的檔案
+      result = result.filter(f => !f.所屬資料夾);
     }
     return result;
   }, [所有檔案, 選擇組別, 目前資料夾, 搜尋關鍵字]);
 
   const 篩選後資料夾 = useMemo(() => {
+    // 搜尋模式下不顯示資料夾
+    if (搜尋關鍵字) return [];
     let result = 所有資料夾;
     if (選擇組別) result = result.filter(f => f.所屬組別 === 選擇組別);
     if (目前資料夾) {
       result = result.filter(f => f.上層資料夾 === 目前資料夾.id);
-    } else if (選擇組別) {
+    } else {
+      // 根層：只顯示沒有上層資料夾的資料夾
       result = result.filter(f => !f.上層資料夾);
     }
     return result;
-  }, [所有資料夾, 選擇組別, 目前資料夾]);
+  }, [所有資料夾, 選擇組別, 目前資料夾, 搜尋關鍵字]);
 
   const 進入資料夾 = (folder) => {
     set路徑堆疊(prev => [...prev, { id: folder.id, name: folder.資料夾名稱, level: folder.層級 }]);
