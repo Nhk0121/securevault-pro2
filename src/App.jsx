@@ -5,7 +5,14 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import 主佈局 from '@/components/佈局/主佈局';
+import 首頁 from '@/pages/首頁';
+import 永久區頁面 from '@/pages/永久區頁面';
+import 時效區頁面 from '@/pages/時效區頁面';
+import 資源回收桶頁面 from '@/pages/資源回收桶頁面';
+import 審核管理頁面 from '@/pages/審核管理頁面';
+import 稽核日誌頁面 from '@/pages/稽核日誌頁面';
+import 系統設定頁面 from '@/pages/系統設定頁面';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,7 +40,15 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<主佈局 />}>
+        <Route path="/" element={<首頁 />} />
+        <Route path="/永久區" element={<永久區頁面 />} />
+        <Route path="/時效區" element={<時效區頁面 />} />
+        <Route path="/資源回收桶" element={<資源回收桶頁面 />} />
+        <Route path="/審核管理" element={<審核管理頁面 />} />
+        <Route path="/稽核日誌" element={<稽核日誌頁面 />} />
+        <Route path="/系統設定" element={<系統設定頁面 />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

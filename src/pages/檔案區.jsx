@@ -1,0 +1,195 @@
+import React, { useState, useMemo } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList,
+  BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
+import { Upload, FolderPlus, Search, ChevronRight, Home } from "lucide-react";
+import { 組別列表 } from "@/lib/常數";
+import 檔案列表 from "@/components/檔案/檔案列表";
+import 上傳對話框 from "@/components/檔案/上傳對話框";
+import 新增資料夾對話框 from "@/components/檔案/新增資料夾對話框";
+
+export default function 檔案區({ 儲存區域類型 }) {
+  const [選擇組別, set選擇組別] = useState("");
+  const [搜尋關鍵字, set搜尋關鍵字] = useState("");
+  const [顯示上傳, set顯示上傳] = useState(false);
+  const [顯示新增資料夾, set顯示新增資料夾] = useState(false);
+  const [路徑堆疊, set路徑堆疊] = useState([]); // [{id, name, level}]
+  const queryClient = useQueryClient();
+
+  const 目前資料夾 = 路徑堆疊.length > 0 ? 路徑堆疊[路徑堆疊.length - 1] : null;
+
+  const { data: 所有檔案 = [], isLoading: 載入檔案中 } = useQuery({
+    queryKey: ["檔案", 儲存區域類型],
+    queryFn: () => base44.entities.檔案.filter({ 儲存區域: 儲存區域類型, 已刪除: false }, "-created_date", 500),
+  });
+
+  const { data: 所有資料夾 = [] } = useQuery({
+    queryKey: ["資料夾", 儲存區域類型],
+    queryFn: () => base44.entities.資料夾.filter({ 儲存區域: 儲存區域類型 }, "-created_date", 200),
+  });
+
+  const 重新整理 = () => {
+    queryClient.invalidateQueries({ queryKey: ["檔案", 儲存區域類型] });
+    queryClient.invalidateQueries({ queryKey: ["資料夾", 儲存區域類型] });
+  };
+
+  const 篩選後檔案 = useMemo(() => {
+    let result = 所有檔案;
+    if (選擇組別) result = result.filter(f => f.所屬組別 === 選擇組別);
+    if (目前資料夾) {
+      result = result.filter(f => f.所屬資料夾 === 目前資料夾.id);
+    } else if (選擇組別) {
+      result = result.filter(f => !f.所屬資料夾);
+    }
+    if (搜尋關鍵字) {
+      const kw = 搜尋關鍵字.toLowerCase();
+      result = result.filter(f => f.檔案名稱?.toLowerCase().includes(kw));
+    }
+    return result;
+  }, [所有檔案, 選擇組別, 目前資料夾, 搜尋關鍵字]);
+
+  const 篩選後資料夾 = useMemo(() => {
+    let result = 所有資料夾;
+    if (選擇組別) result = result.filter(f => f.所屬組別 === 選擇組別);
+    if (目前資料夾) {
+      result = result.filter(f => f.上層資料夾 === 目前資料夾.id);
+    } else if (選擇組別) {
+      result = result.filter(f => !f.上層資料夾);
+    }
+    return result;
+  }, [所有資料夾, 選擇組別, 目前資料夾]);
+
+  const 進入資料夾 = (folder) => {
+    set路徑堆疊(prev => [...prev, { id: folder.id, name: folder.資料夾名稱, level: folder.層級 }]);
+  };
+
+  const 回到指定層 = (idx) => {
+    if (idx < 0) {
+      set路徑堆疊([]);
+    } else {
+      set路徑堆疊(prev => prev.slice(0, idx + 1));
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">{儲存區域類型}</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {儲存區域類型 === "永久區" ? "需經審核的永久保存檔案" : "保留30天的暫存檔案"}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {選擇組別 && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => set顯示新增資料夾(true)}>
+                <FolderPlus className="w-4 h-4 mr-1" />新增資料夾
+              </Button>
+              <Button size="sm" onClick={() => set顯示上傳(true)}>
+                <Upload className="w-4 h-4 mr-1" />上傳檔案
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Select value={選擇組別} onValueChange={(v) => { set選擇組別(v); set路徑堆疊([]); }}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="選擇組別" />
+          </SelectTrigger>
+          <SelectContent>
+            {組別列表.map(g => (
+              <SelectItem key={g} value={g}>{g}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="搜尋檔案名稱..."
+            value={搜尋關鍵字}
+            onChange={e => set搜尋關鍵字(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      {/* Breadcrumb */}
+      {選擇組別 && (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => 回到指定層(-1)} className="cursor-pointer flex items-center gap-1">
+                <Home className="w-3.5 h-3.5" />
+                {選擇組別}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {路徑堆疊.map((item, idx) => (
+              <React.Fragment key={item.id}>
+                <BreadcrumbSeparator>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </BreadcrumbSeparator>
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    onClick={() => 回到指定層(idx)}
+                    className={idx === 路徑堆疊.length - 1 ? "font-medium" : "cursor-pointer"}
+                  >
+                    {item.name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </React.Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+      )}
+
+      {/* File list */}
+      {!選擇組別 ? (
+        <div className="text-center py-20">
+          <p className="text-muted-foreground">請先選擇組別以檢視檔案</p>
+        </div>
+      ) : 載入檔案中 ? (
+        <div className="flex justify-center py-20">
+          <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+        </div>
+      ) : (
+        <檔案列表
+          檔案清單={篩選後檔案}
+          資料夾清單={篩選後資料夾}
+          進入資料夾={進入資料夾}
+          儲存區域={儲存區域類型}
+          重新整理={重新整理}
+        />
+      )}
+
+      {/* Dialogs */}
+      <上傳對話框
+        開啟={顯示上傳}
+        關閉={() => set顯示上傳(false)}
+        儲存區域={儲存區域類型}
+        預設組別={選擇組別}
+        預設資料夾ID={目前資料夾?.id || ""}
+        重新整理={重新整理}
+      />
+      <新增資料夾對話框
+        開啟={顯示新增資料夾}
+        關閉={() => set顯示新增資料夾(false)}
+        組別={選擇組別}
+        儲存區域={儲存區域類型}
+        上層資料夾ID={目前資料夾?.id || ""}
+        目前層級={目前資料夾?.level || 0}
+        重新整理={重新整理}
+      />
+    </div>
+  );
+}
