@@ -1,0 +1,122 @@
+{
+  "name": "\u6a94\u6848",
+  "type": "object",
+  "properties": {
+    "\u6a94\u6848\u540d\u7a31": {
+      "type": "string",
+      "description": "\u6a94\u6848\u540d\u7a31\uff0c\u6700\u591a50\u5b57\u5143"
+    },
+    "\u6a94\u6848\u7db2\u5740": {
+      "type": "string",
+      "description": "\u4e0a\u50b3\u5f8c\u7684\u6a94\u6848URL"
+    },
+    "\u6a94\u6848\u985e\u578b": {
+      "type": "string",
+      "description": "\u6a94\u6848MIME\u985e\u578b"
+    },
+    "\u6a94\u6848\u5927\u5c0f": {
+      "type": "number",
+      "description": "\u6a94\u6848\u5927\u5c0f(bytes)"
+    },
+    "\u526f\u6a94\u540d": {
+      "type": "string",
+      "description": "\u6a94\u6848\u526f\u6a94\u540d"
+    },
+    "\u6240\u5c6c\u8cc7\u6599\u593e": {
+      "type": "string",
+      "description": "\u6240\u5c6c\u8cc7\u6599\u593eID"
+    },
+    "\u5132\u5b58\u5340\u57df": {
+      "type": "string",
+      "enum": [
+        "\u6c38\u4e45\u5340",
+        "\u6642\u6548\u5340",
+        "\u8cc7\u6e90\u56de\u6536\u6876"
+      ],
+      "default": "\u6642\u6548\u5340",
+      "description": "\u6a94\u6848\u5b58\u653e\u5340\u57df"
+    },
+    "\u6240\u5c6c\u7d44\u5225": {
+      "type": "string",
+      "enum": [
+        "00.\u8655\u9577\u5ba4",
+        "01.\u7dad\u8b77\u7d44",
+        "02.\u8a2d\u8a08\u7d44",
+        "03.\u696d\u52d9\u7d44",
+        "04.\u96fb\u8cbb\u7d44",
+        "05.\u8abf\u5ea6\u7d44",
+        "06.\u7e3d\u52d9\u7d44",
+        "07.\u6703\u8a08\u7d44",
+        "08.\u4eba\u8cc7\u7d44",
+        "09.\u653f\u98a8\u7d44",
+        "10.\u5de5\u52d9\u6bb5",
+        "11.\u5de5\u5b89\u7d44",
+        "12.\u96fb\u63a7\u7d44",
+        "13.\u96fb\u529b\u5de5\u6703",
+        "14.\u798f\u5229\u6703",
+        "15.\u6a94\u6848\u4e0b\u8f09"
+      ],
+      "description": "\u6240\u5c6c\u7d44\u5225"
+    },
+    "\u6240\u5c6c\u8ab2\u5225": {
+      "type": "string",
+      "description": "\u6240\u5c6c\u8ab2\u5225"
+    },
+    "\u5be9\u6838\u72c0\u614b": {
+      "type": "string",
+      "enum": [
+        "\u5f85\u5be9\u6838",
+        "\u5df2\u901a\u904e",
+        "\u5df2\u9000\u56de",
+        "\u514d\u5be9\u6838"
+      ],
+      "default": "\u514d\u5be9\u6838",
+      "description": "\u6c38\u4e45\u5340\u5be9\u6838\u72c0\u614b"
+    },
+    "\u5be9\u6838\u4eba": {
+      "type": "string",
+      "description": "\u5be9\u6838\u4eba\u4fe1\u7bb1"
+    },
+    "\u5be9\u6838\u6642\u9593": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u5be9\u6838\u6642\u9593"
+    },
+    "\u5be9\u6838\u5099\u8a3b": {
+      "type": "string",
+      "description": "\u5be9\u6838\u5099\u8a3b"
+    },
+    "\u4e0a\u50b3\u8005IP": {
+      "type": "string",
+      "description": "\u4e0a\u50b3\u8005IP\u4f4d\u5740"
+    },
+    "\u662f\u5426\u70ba\u57f7\u884c\u6a94": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u662f\u5426\u70baexe\u7b49\u57f7\u884c\u6a94"
+    },
+    "\u5230\u671f\u65e5\u671f": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u6642\u6548\u5340\u5230\u671f\u65e5\u671f"
+    },
+    "\u5df2\u522a\u9664": {
+      "type": "boolean",
+      "default": false
+    },
+    "\u522a\u9664\u6642\u9593": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "\u522a\u9664\u8005": {
+      "type": "string"
+    },
+    "\u865b\u64ec\u8def\u5f91": {
+      "type": "string",
+      "description": "\u5b8c\u6574\u865b\u64ec\u8def\u5f91\uff0c\u4f9b\u79fb\u6a5f\u6642\u91cd\u5efa\u78c1\u789f\u7d50\u69cb\u4f7f\u7528"
+    }
+  },
+  "required": [
+    "\u6a94\u6848\u540d\u7a31"
+  ]
+}

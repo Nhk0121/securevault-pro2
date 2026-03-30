@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import {
   HardDrive, FolderLock, Clock, Trash2, Shield, Settings,
   FileSearch, ChevronLeft, ChevronRight, Home, ClipboardCheck,
-  UserCog, Users, BookOpen
+  UserCog, Users, BookOpen, Building2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,7 @@ const 選單項目 = [
   { 路徑: "/個人資料", 標題: "個人資料", 圖示: UserCog },
   { 路徑: "/使用者管理", 標題: "使用者管理", 圖示: Users, 僅管理員: true },
   { 路徑: "/組課別管理", 標題: "組課別管理", 圖示: BookOpen, 僅管理員: true },
+  { 路徑: "/外包人員管理", 標題: "外包人員管理", 圖示: Building2, 僅管理員: true },
 ];
 
 export default function 側邊欄({ 已收合, 切換收合 }) {
