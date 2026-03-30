@@ -13,6 +13,9 @@ import 資源回收桶頁面 from '@/pages/資源回收桶頁面';
 import 審核管理頁面 from '@/pages/審核管理頁面';
 import 稽核日誌頁面 from '@/pages/稽核日誌頁面';
 import 系統設定頁面 from '@/pages/系統設定頁面';
+import 個人資料頁面 from '@/pages/個人資料頁面';
+import 使用者管理頁面 from '@/pages/使用者管理頁面';
+import 組課別管理頁面 from '@/pages/組課別管理頁面';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +51,9 @@ const AuthenticatedApp = () => {
         <Route path="/審核管理" element={<審核管理頁面 />} />
         <Route path="/稽核日誌" element={<稽核日誌頁面 />} />
         <Route path="/系統設定" element={<系統設定頁面 />} />
+        <Route path="/個人資料" element={<個人資料頁面 />} />
+        <Route path="/使用者管理" element={<使用者管理頁面 />} />
+        <Route path="/組課別管理" element={<組課別管理頁面 />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

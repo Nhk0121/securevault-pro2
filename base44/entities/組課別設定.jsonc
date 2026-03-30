@@ -1,0 +1,23 @@
+{
+  "name": "\u7d44\u8ab2\u5225\u8a2d\u5b9a",
+  "type": "object",
+  "properties": {
+    "\u7d44\u5225": {
+      "type": "string",
+      "description": "\u6240\u5c6c\u7d44\u5225\u540d\u7a31\uff08\u5c0d\u61c9\u7d44\u5225\u5217\u8868\uff09"
+    },
+    "\u8ab2\u5225\u540d\u7a31": {
+      "type": "string",
+      "description": "\u8ab2\u5225\u540d\u7a31"
+    },
+    "\u6392\u5e8f": {
+      "type": "number",
+      "default": 0,
+      "description": "\u986f\u793a\u6392\u5e8f"
+    }
+  },
+  "required": [
+    "\u7d44\u5225",
+    "\u8ab2\u5225\u540d\u7a31"
+  ]
+}

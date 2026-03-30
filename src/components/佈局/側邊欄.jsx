@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 import {
   HardDrive, FolderLock, Clock, Trash2, Shield, Settings,
-  FileSearch, ChevronLeft, ChevronRight, Home, ClipboardCheck
+  FileSearch, ChevronLeft, ChevronRight, Home, ClipboardCheck,
+  UserCog, Users, BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,10 +16,20 @@ const 選單項目 = [
   { 路徑: "/審核管理", 標題: "審核管理", 圖示: ClipboardCheck },
   { 路徑: "/稽核日誌", 標題: "稽核日誌", 圖示: FileSearch },
   { 路徑: "/系統設定", 標題: "系統設定", 圖示: Settings },
+  { 路徑: "/個人資料", 標題: "個人資料", 圖示: UserCog },
+  { 路徑: "/使用者管理", 標題: "使用者管理", 圖示: Users, 僅管理員: true },
+  { 路徑: "/組課別管理", 標題: "組課別管理", 圖示: BookOpen, 僅管理員: true },
 ];
 
 export default function 側邊欄({ 已收合, 切換收合 }) {
   const location = useLocation();
+  const [我, set我] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(set我).catch(() => {});
+  }, []);
+
+  const 是管理員 = 我?.role === "admin";
 
   return (
     <aside
@@ -39,7 +51,7 @@ export default function 側邊欄({ 已收合, 切換收合 }) {
       {/* Navigation */}
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-2">
-          {選單項目.map((item) => {
+          {選單項目.filter(item => !item.僅管理員 || 是管理員).map((item) => {
             const 是否啟用 = location.pathname === item.路徑 || 
               (item.路徑 !== "/" && location.pathname.startsWith(item.路徑));
             const Icon = item.圖示;

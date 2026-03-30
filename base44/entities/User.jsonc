@@ -1,0 +1,46 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "it_staff",
+        "user",
+        "contractor"
+      ],
+      "default": "user",
+      "description": "\u4f7f\u7528\u8005\u89d2\u8272"
+    },
+    "\u59d3\u540d\u4ee3\u865f": {
+      "type": "string",
+      "description": "6\u4f4d\u6578\u5b57\u59d3\u540d\u4ee3\u865f\uff0c\u4f8b\u5982123456"
+    },
+    "\u6240\u5c6c\u7d44\u5225": {
+      "type": "string",
+      "description": "\u6240\u5c6c\u7d44\u5225"
+    },
+    "\u6240\u5c6c\u8ab2\u5225": {
+      "type": "string",
+      "description": "\u6240\u5c6c\u8ab2\u5225"
+    },
+    "\u96fb\u8a71": {
+      "type": "string",
+      "description": "\u806f\u7d61\u96fb\u8a71"
+    },
+    "\u5206\u6a5f": {
+      "type": "string",
+      "description": "\u8fa6\u516c\u5ba4\u5206\u6a5f"
+    },
+    "\u8cc7\u8a0a\u4eba\u54e1IP": {
+      "type": "string",
+      "description": "\u8cc7\u8a0a\u4eba\u54e1\u7d81\u5b9aIP\uff08\u50c5it_staff\u89d2\u8272\u4f7f\u7528\uff09"
+    },
+    "\u8cc7\u6599\u586b\u5beb\u5b8c\u6210": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u4f7f\u7528\u8005\u662f\u5426\u5df2\u5b8c\u6210\u500b\u4eba\u8cc7\u6599\u586b\u5beb"
+    }
+  }
+}
