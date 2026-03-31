@@ -1,157 +1,188 @@
 /**
- * 通用 Entity CRUD 路由
+ * 通用實體 CRUD 路由
  * 對應前端 base44.entities.XXX.list/filter/get/create/update/delete
  *
- * GET    /api/entities/:entity          list/filter
- * GET    /api/entities/:entity/:id      get
- * POST   /api/entities/:entity          create
- * POST   /api/entities/:entity/bulk     bulkCreate
- * PUT    /api/entities/:entity/:id      update
- * DELETE /api/entities/:entity/:id      delete
+ * GET    /api/資料/:實體名稱               列出 / 篩選
+ * GET    /api/資料/:實體名稱/:識別碼        取得單筆
+ * POST   /api/資料/:實體名稱               新增
+ * POST   /api/資料/:實體名稱/批次新增       批次新增
+ * PUT    /api/資料/:實體名稱/:識別碼        更新
+ * DELETE /api/資料/:實體名稱/:識別碼        刪除
  */
 const router = require("express").Router();
 const { v4: uuidv4 } = require("uuid");
-const { getPool, sql } = require("../db");
-const { requireAuth } = require("../middleware/auth");
+const { 取得連線池, sql } = require("../db");
+const { 驗證登入 } = require("../middleware/auth");
 
-// Entity 名稱 → 資料表名稱對應
-const TABLE_MAP = {
-  "檔案": "檔案",
-  "資料夾": "資料夾",
+// 前端實體名稱 → 資料庫資料表名稱對應表
+const 實體對應表 = {
+  "檔案":     "檔案",
+  "資料夾":   "資料夾",
   "操作日誌": "操作日誌",
   "審核記錄": "審核記錄",
-  "組課別設定": "組課別設定",
+  "組課別設定":"組課別設定",
   "系統設定": "系統設定",
-  "User": "Users",
+  "User":     "使用者",         // 相容前端 User entity 呼叫
+  "使用者":   "使用者",
 };
 
-// 允許的排序欄位（防止 SQL Injection）
-const ALLOWED_SORT_COLS = [
+// 允許排序的欄位白名單（防止 SQL Injection）
+const 允許排序欄位 = [
+  "建立時間", "更新時間", "識別碼",
+  "排列順序", "檔案名稱", "資料夾名稱",
+  "操作類型", "課別名稱",
+  // 相容舊欄位名（移機前的 Base44 資料）
   "created_date", "updated_date", "id", "排序",
-  "檔案名稱", "資料夾名稱", "操作類型", "課別名稱",
 ];
 
-router.use(requireAuth);
+router.use(驗證登入);
 
-function parseSort(sort = "-created_date") {
-  const desc = sort.startsWith("-");
-  const col = sort.replace(/^-/, "");
-  const safe = ALLOWED_SORT_COLS.includes(col) ? col : "created_date";
-  return `${safe} ${desc ? "DESC" : "ASC"}`;
+function 解析排序(排序字串 = "-建立時間") {
+  const 降冪 = 排序字串.startsWith("-");
+  const 欄位 = 排序字串.replace(/^-/, "");
+  const 安全欄位 = 允許排序欄位.includes(欄位) ? 欄位 : "建立時間";
+  return `[${安全欄位}] ${降冪 ? "DESC" : "ASC"}`;
 }
 
-// ─── List / Filter ────────────────────────────────────────────
-router.get("/:entity", async (req, res) => {
-  const table = TABLE_MAP[req.params.entity];
-  if (!table) return res.status(404).json({ message: "Entity 不存在" });
+// ─── 列出 / 篩選 ──────────────────────────────────────────────
+router.get("/:實體名稱", async (req, res) => {
+  const 資料表 = 實體對應表[req.params.實體名稱];
+  if (!資料表) return res.status(404).json({ 訊息: `實體「${req.params.實體名稱}」不存在` });
 
-  const limit = Math.min(parseInt(req.query.limit) || 100, 1000);
-  const order = parseSort(req.query.sort);
-  const filter = req.query.filter ? JSON.parse(req.query.filter) : null;
+  const 筆數上限 = Math.min(parseInt(req.query.limit) || 100, 1000);
+  const 排序 = 解析排序(req.query.sort);
+  const 篩選條件 = req.query.filter ? JSON.parse(req.query.filter) : null;
 
-  const pool = await getPool();
-  const request = pool.request();
-  let where = "";
+  const pool = await 取得連線池();
+  const 請求 = pool.request();
+  let 條件子句 = "";
 
-  if (filter) {
-    const conditions = Object.entries(filter).map(([key, val], i) => {
-      request.input(`f${i}`, sql.NVarChar, String(val));
-      return `[${key}] = @f${i}`;
+  if (篩選條件) {
+    const 條件陣列 = Object.entries(篩選條件).map(([欄位, 值], 索引) => {
+      請求.input(`篩選${索引}`, sql.NVarChar, String(值));
+      return `[${欄位}] = @篩選${索引}`;
     });
-    where = `WHERE ${conditions.join(" AND ")}`;
+    條件子句 = `WHERE ${條件陣列.join(" AND ")}`;
   }
 
-  const result = await request.query(
-    `SELECT TOP ${limit} * FROM [${table}] ${where} ORDER BY ${order}`
+  const 結果 = await 請求.query(
+    `SELECT TOP ${筆數上限} * FROM [${資料表}] ${條件子句} ORDER BY ${排序}`
   );
-  res.json(result.recordset);
+  res.json(結果.recordset);
 });
 
-// ─── Get by ID ────────────────────────────────────────────────
-router.get("/:entity/:id", async (req, res) => {
-  if (req.params.id === "schema") return res.json({});
-  const table = TABLE_MAP[req.params.entity];
-  if (!table) return res.status(404).json({ message: "Entity 不存在" });
+// ─── 取得單筆 ─────────────────────────────────────────────────
+router.get("/:實體名稱/:識別碼", async (req, res) => {
+  if (req.params.識別碼 === "schema") return res.json({});
+  const 資料表 = 實體對應表[req.params.實體名稱];
+  if (!資料表) return res.status(404).json({ 訊息: `實體「${req.params.實體名稱}」不存在` });
 
-  const pool = await getPool();
-  const result = await pool.request()
-    .input("id", sql.UniqueIdentifier, req.params.id)
-    .query(`SELECT * FROM [${table}] WHERE id = @id`);
+  const pool = await 取得連線池();
+  const 結果 = await pool.request()
+    .input("識別碼", sql.UniqueIdentifier, req.params.識別碼)
+    .query(`SELECT * FROM [${資料表}] WHERE 識別碼 = @識別碼`);
 
-  if (!result.recordset[0]) return res.status(404).json({ message: "找不到" });
-  res.json(result.recordset[0]);
+  if (!結果.recordset[0]) return res.status(404).json({ 訊息: "找不到此筆資料" });
+  res.json(結果.recordset[0]);
 });
 
-// ─── Create ───────────────────────────────────────────────────
-router.post("/:entity", async (req, res) => {
-  if (req.params.id === "bulk") return; // handled below
-  const table = TABLE_MAP[req.params.entity];
-  if (!table) return res.status(404).json({ message: "Entity 不存在" });
+// ─── 新增單筆 ─────────────────────────────────────────────────
+router.post("/:實體名稱", async (req, res) => {
+  const 資料表 = 實體對應表[req.params.實體名稱];
+  if (!資料表) return res.status(404).json({ 訊息: `實體「${req.params.實體名稱}」不存在` });
 
-  const data = { ...req.body, id: uuidv4(), created_date: new Date(), updated_date: new Date(), created_by: req.user.email || req.user.帳號 };
+  const 資料 = {
+    ...req.body,
+    識別碼: uuidv4(),
+    建立時間: new Date(),
+    更新時間: new Date(),
+    建立者: req.使用者?.帳號 || req.使用者?.電子信箱 || "",
+  };
 
-  const pool = await getPool();
-  const request = pool.request();
-  const cols = Object.keys(data);
-  const params = cols.map((c, i) => { request.input(`v${i}`, sql.NVarChar, data[c] === null ? null : String(data[c])); return `@v${i}`; });
-
-  await request.query(
-    `INSERT INTO [${table}] (${cols.map(c => `[${c}]`).join(",")}) VALUES (${params.join(",")})`
-  );
-  res.status(201).json({ id: data.id, ...data });
-});
-
-// ─── Bulk Create ──────────────────────────────────────────────
-router.post("/:entity/bulk", async (req, res) => {
-  const table = TABLE_MAP[req.params.entity];
-  if (!table) return res.status(404).json({ message: "Entity 不存在" });
-
-  const items = req.body;
-  if (!Array.isArray(items)) return res.status(400).json({ message: "需要陣列格式" });
-
-  const pool = await getPool();
-  const ids = [];
-  for (const item of items) {
-    const data = { ...item, id: uuidv4(), created_date: new Date(), updated_date: new Date(), created_by: req.user.email };
-    ids.push(data.id);
-    const request = pool.request();
-    const cols = Object.keys(data);
-    const params = cols.map((c, i) => { request.input(`v${i}`, sql.NVarChar, data[c] === null ? null : String(data[c])); return `@v${i}`; });
-    await request.query(`INSERT INTO [${table}] (${cols.map(c=>`[${c}]`).join(",")}) VALUES (${params.join(",")})`);
-  }
-  res.status(201).json({ inserted: ids.length, ids });
-});
-
-// ─── Update ───────────────────────────────────────────────────
-router.put("/:entity/:id", async (req, res) => {
-  const table = TABLE_MAP[req.params.entity];
-  if (!table) return res.status(404).json({ message: "Entity 不存在" });
-
-  const data = { ...req.body, updated_date: new Date() };
-  delete data.id; delete data.created_date; delete data.created_by;
-
-  const pool = await getPool();
-  const request = pool.request();
-  request.input("id", sql.NVarChar, req.params.id);
-  const sets = Object.entries(data).map(([key, val], i) => {
-    request.input(`v${i}`, sql.NVarChar, val === null ? null : String(val));
-    return `[${key}] = @v${i}`;
+  const pool = await 取得連線池();
+  const 請求 = pool.request();
+  const 欄位清單 = Object.keys(資料);
+  const 參數清單 = 欄位清單.map((欄位, 索引) => {
+    請求.input(`值${索引}`, sql.NVarChar, 資料[欄位] === null ? null : String(資料[欄位]));
+    return `@值${索引}`;
   });
 
-  await request.query(`UPDATE [${table}] SET ${sets.join(",")} WHERE id = @id`);
-  res.json({ message: "已更新" });
+  await 請求.query(
+    `INSERT INTO [${資料表}] (${欄位清單.map(c => `[${c}]`).join(",")})
+     VALUES (${參數清單.join(",")})`
+  );
+  res.status(201).json({ 識別碼: 資料.識別碼, ...資料 });
 });
 
-// ─── Delete ───────────────────────────────────────────────────
-router.delete("/:entity/:id", async (req, res) => {
-  const table = TABLE_MAP[req.params.entity];
-  if (!table) return res.status(404).json({ message: "Entity 不存在" });
+// ─── 批次新增 ─────────────────────────────────────────────────
+router.post("/:實體名稱/批次新增", async (req, res) => {
+  const 資料表 = 實體對應表[req.params.實體名稱];
+  if (!資料表) return res.status(404).json({ 訊息: `實體「${req.params.實體名稱}」不存在` });
 
-  const pool = await getPool();
+  const 項目陣列 = req.body;
+  if (!Array.isArray(項目陣列)) return res.status(400).json({ 訊息: "請傳入陣列格式的資料" });
+
+  const pool = await 取得連線池();
+  const 識別碼清單 = [];
+
+  for (const 項目 of 項目陣列) {
+    const 資料 = {
+      ...項目,
+      識別碼: uuidv4(),
+      建立時間: new Date(),
+      更新時間: new Date(),
+      建立者: req.使用者?.帳號 || "",
+    };
+    識別碼清單.push(資料.識別碼);
+
+    const 請求 = pool.request();
+    const 欄位清單 = Object.keys(資料);
+    const 參數清單 = 欄位清單.map((欄位, 索引) => {
+      請求.input(`值${索引}`, sql.NVarChar, 資料[欄位] === null ? null : String(資料[欄位]));
+      return `@值${索引}`;
+    });
+    await 請求.query(
+      `INSERT INTO [${資料表}] (${欄位清單.map(c => `[${c}]`).join(",")})
+       VALUES (${參數清單.join(",")})`
+    );
+  }
+
+  res.status(201).json({ 新增筆數: 識別碼清單.length, 識別碼清單 });
+});
+
+// ─── 更新 ─────────────────────────────────────────────────────
+router.put("/:實體名稱/:識別碼", async (req, res) => {
+  const 資料表 = 實體對應表[req.params.實體名稱];
+  if (!資料表) return res.status(404).json({ 訊息: `實體「${req.params.實體名稱}」不存在` });
+
+  const 資料 = { ...req.body, 更新時間: new Date() };
+  delete 資料.識別碼;
+  delete 資料.建立時間;
+  delete 資料.建立者;
+
+  const pool = await 取得連線池();
+  const 請求 = pool.request();
+  請求.input("識別碼", sql.NVarChar, req.params.識別碼);
+
+  const 更新子句 = Object.entries(資料).map(([欄位, 值], 索引) => {
+    請求.input(`值${索引}`, sql.NVarChar, 值 === null ? null : String(值));
+    return `[${欄位}] = @值${索引}`;
+  });
+
+  await 請求.query(`UPDATE [${資料表}] SET ${更新子句.join(",")} WHERE 識別碼 = @識別碼`);
+  res.json({ 訊息: "已更新" });
+});
+
+// ─── 刪除 ─────────────────────────────────────────────────────
+router.delete("/:實體名稱/:識別碼", async (req, res) => {
+  const 資料表 = 實體對應表[req.params.實體名稱];
+  if (!資料表) return res.status(404).json({ 訊息: `實體「${req.params.實體名稱}」不存在` });
+
+  const pool = await 取得連線池();
   await pool.request()
-    .input("id", sql.NVarChar, req.params.id)
-    .query(`DELETE FROM [${table}] WHERE id = @id`);
-  res.json({ message: "已刪除" });
+    .input("識別碼", sql.NVarChar, req.params.識別碼)
+    .query(`DELETE FROM [${資料表}] WHERE 識別碼 = @識別碼`);
+  res.json({ 訊息: "已刪除" });
 });
 
 module.exports = router;
