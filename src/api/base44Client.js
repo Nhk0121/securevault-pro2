@@ -1,14 +1,5 @@
-import { createClient } from '@base44/sdk';
-import { appParams } from '@/lib/app-params';
-
-const { appId, token, functionsVersion, appBaseUrl } = appParams;
-
-//Create a client with authentication required
-export const base44 = createClient({
-  appId,
-  token,
-  functionsVersion,
-  serverUrl: '',
-  requiresAuth: false,
-  appBaseUrl
-});
+/**
+ * 相容層：原本使用 base44 的頁面皆 import 此檔案
+ * 現在統一轉到自建 apiClient
+ */
+export { apiClient as base44 } from "@/api/apiClient";

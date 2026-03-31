@@ -5,6 +5,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import 登入頁面 from '@/pages/登入頁面';
+import 變更密碼頁面 from '@/pages/變更密碼頁面';
 import 主佈局 from '@/components/佈局/主佈局';
 import 首頁 from '@/pages/首頁';
 import 永久區頁面 from '@/pages/永久區頁面';
@@ -35,15 +37,20 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      return (
+        <Routes>
+          <Route path="/login" element={<登入頁面 />} />
+          <Route path="*" element={<登入頁面 />} />
+        </Routes>
+      );
     }
   }
 
   // Render the main app
   return (
     <Routes>
+      <Route path="/login" element={<登入頁面 />} />
+      <Route path="/變更密碼" element={<變更密碼頁面 />} />
       <Route element={<主佈局 />}>
         <Route path="/" element={<首頁 />} />
         <Route path="/永久區" element={<永久區頁面 />} />
