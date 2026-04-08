@@ -3,12 +3,15 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  FolderLock, Clock, Trash2, FileText, Upload, Download,
-  Shield, AlertTriangle, TrendingUp
+  FolderLock, Clock, Trash2, Shield, AlertTriangle
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { 組別列表 } from "@/lib/常數";
 import moment from "moment";
+import 歡迎橫幅 from "@/components/首頁/歡迎橫幅";
+import 即將過期提醒 from "@/components/首頁/即將過期提醒";
+import 部門權限儀表板 from "@/components/首頁/部門權限儀表板";
+import 待審核快覽 from "@/components/首頁/待審核快覽";
 
 const 色彩 = ["hsl(217,71%,45%)", "hsl(199,89%,48%)", "hsl(142,71%,45%)", "hsl(38,92%,50%)", "hsl(0,72%,51%)"];
 
@@ -34,7 +37,7 @@ function 統計卡({ 標題, 數值, 圖示: Icon, 顏色 }) {
 export default function 首頁() {
   const { data: 所有檔案 = [] } = useQuery({
     queryKey: ["首頁-檔案"],
-    queryFn: () => base44.entities.檔案.list("-created_date", 200),
+    queryFn: () => base44.entities.檔案.list("-created_date", 500),
   });
 
   const { data: 最近日誌 = [] } = useQuery({
@@ -48,7 +51,16 @@ export default function 首頁() {
   const 待審核數 = 所有檔案.filter(f => f.審核狀態 === "待審核").length;
   const 異常數 = 最近日誌.filter(l => l.是否異常).length;
 
-  // Bar chart data by group
+  // 即將過期：7天內到期的時效區檔案
+  const 即將過期 = 所有檔案.filter(f => {
+    if (f.儲存區域 !== "時效區" || f.已刪除 || !f.到期日期) return false;
+    const 剩餘 = moment(f.到期日期).diff(moment(), "days");
+    return 剩餘 >= 0 && 剩餘 <= 7;
+  }).sort((a, b) => moment(a.到期日期).diff(moment(b.到期日期)));
+
+  // 待審核檔案列表
+  const 待審核清單 = 所有檔案.filter(f => f.審核狀態 === "待審核" && !f.已刪除);
+
   const 組別統計 = 組別列表.map(g => ({
     name: g.substring(3),
     永久區: 所有檔案.filter(f => f.所屬組別 === g && f.儲存區域 === "永久區").length,
@@ -63,10 +75,8 @@ export default function 首頁() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">系統總覽</h1>
-        <p className="text-muted-foreground text-sm mt-1">歡迎使用雲端檔案管理系統</p>
-      </div>
+      {/* 歡迎橫幅 */}
+      <歡迎橫幅 待審核數={待審核數} 即將過期數={即將過期.length} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -77,7 +87,11 @@ export default function 首頁() {
         <統計卡 標題="異常紀錄" 數值={異常數} 圖示={AlertTriangle} 顏色="bg-destructive" />
       </div>
 
-      {/* Charts */}
+      {/* 提醒區塊 */}
+      {即將過期.length > 0 && <即將過期提醒 檔案列表={即將過期} />}
+      {待審核清單.length > 0 && <待審核快覽 待審核檔案={待審核清單} />}
+
+      {/* Charts + 部門儀表板 */}
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -114,6 +128,9 @@ export default function 首頁() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 部門權限儀表板 */}
+      <部門權限儀表板 所有檔案={所有檔案} />
 
       {/* Recent logs */}
       <Card>
