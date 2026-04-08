@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { auth, getToken } from "@/api/apiClient";
+import { base44 } from "@/api/base44Client";
 
 const AuthContext = createContext();
 
@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [isLoadingPublicSettings] = useState(false); // 自建後端不需要
+  const [isLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
@@ -16,15 +16,8 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     setIsLoadingAuth(true);
-    const token = getToken();
-    if (!token) {
-      setIsLoadingAuth(false);
-      setIsAuthenticated(false);
-      setAuthError({ type: "auth_required", message: "請先登入" });
-      return;
-    }
     try {
-      const currentUser = await auth.me();
+      const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
       setAuthError(null);
@@ -39,11 +32,11 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    auth.logout();
+    base44.auth.logout();
   };
 
   const navigateToLogin = () => {
-    auth.redirectToLogin();
+    base44.auth.redirectToLogin();
   };
 
   return (

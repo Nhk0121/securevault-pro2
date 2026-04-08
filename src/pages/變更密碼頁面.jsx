@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "@/api/apiClient";
+import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ export default function 變更密碼頁面() {
     }
     set載入中(true);
     try {
-      await auth.changePassword({ currentPassword: 目前密碼, newPassword: 新密碼 });
+      await base44.auth.updateMe({ password: 新密碼 });
       await refreshUser();
       toast({ title: "密碼已更新", description: "密碼變更成功，請重新登入" });
       navigate("/", { replace: true });
