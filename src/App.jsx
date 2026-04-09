@@ -20,6 +20,7 @@ import 使用者管理頁面 from '@/pages/使用者管理頁面';
 import 組課別管理頁面 from '@/pages/組課別管理頁面';
 import 外包人員申請頁面 from '@/pages/外包人員申請頁面';
 import 使用者申請頁面 from '@/pages/使用者申請頁面';
+import 電話簿頁面 from '@/pages/電話簿頁面';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
         <Route path="/使用者管理" element={<使用者管理頁面 />} />
         <Route path="/組課別管理" element={<組課別管理頁面 />} />
         <Route path="/外包人員管理" element={<外包人員申請頁面 />} />
+        <Route path="/電話簿" element={<電話簿頁面 />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
