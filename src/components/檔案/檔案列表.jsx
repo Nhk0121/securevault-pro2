@@ -10,11 +10,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Eye, Download, Trash2, MoreVertical, FolderOpen,
-  CornerUpLeft, AlertTriangle, Clock, CheckCircle, XCircle
+  CornerUpLeft, AlertTriangle, Clock, CheckCircle, XCircle, Pencil
 } from "lucide-react";
 import { 格式化檔案大小 } from "@/lib/常數";
 import 檔案圖示元件 from "./檔案圖示";
 import 預覽對話框 from "./預覽對話框";
+import 線上編輯對話框 from "./線上編輯對話框";
+
+const 可編輯副檔名 = ["txt", "xlsx", "xls", "docx"];
 import moment from "moment";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -30,6 +33,7 @@ export default function 檔案列表({
   儲存區域, 重新整理, 是否為回收桶 = false
 }) {
   const [預覽檔案, set預覽檔案] = useState(null);
+  const [編輯檔案, set編輯檔案] = useState(null);
   const { toast } = useToast();
 
   const 移至回收桶 = async (file) => {
@@ -192,6 +196,11 @@ export default function 檔案列表({
                       <DropdownMenuItem onClick={() => 下載檔案(file)}>
                         <Download className="w-4 h-4 mr-2" />下載
                       </DropdownMenuItem>
+                      {可編輯副檔名.includes((file.副檔名 || "").toLowerCase()) && (
+                        <DropdownMenuItem onClick={() => set編輯檔案(file)}>
+                          <Pencil className="w-4 h-4 mr-2" />線上編輯
+                        </DropdownMenuItem>
+                      )}
                       {是否為回收桶 ? (
                         <>
                           <DropdownMenuItem onClick={() => 還原檔案(file)}>
@@ -224,6 +233,7 @@ export default function 檔案列表({
       </div>
 
       <預覽對話框 開啟={!!預覽檔案} 關閉={() => set預覽檔案(null)} 檔案={預覽檔案} />
+      <線上編輯對話框 開啟={!!編輯檔案} 關閉={() => set編輯檔案(null)} 檔案={編輯檔案} 重新整理={重新整理} />
     </>
   );
 }
