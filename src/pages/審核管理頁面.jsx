@@ -13,9 +13,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
 import {
-  CheckCircle, XCircle, Clock, Eye, FileText
+  CheckCircle, XCircle, Clock, Eye, FileText, Download
 } from "lucide-react";
 import { 組別列表, 格式化檔案大小 } from "@/lib/常數";
+import * as XLSX from "xlsx";
 import 檔案圖示元件 from "@/components/檔案/檔案圖示";
 import 預覽對話框 from "@/components/檔案/預覽對話框";
 import moment from "moment";
@@ -36,6 +37,23 @@ export default function 審核管理頁面() {
   });
 
   const 重新整理 = () => queryClient.invalidateQueries({ queryKey: ["審核檔案"] });
+
+  const 匯出Excel = () => {
+    const rows = 篩選後.map(f => ({
+      檔案名稱: f.檔案名稱 || "",
+      所屬組別: f.所屬組別 || "",
+      上傳者: f.created_by || "",
+      上傳時間: moment(f.created_date).format("YYYY-MM-DD HH:mm:ss"),
+      檔案大小: 格式化檔案大小(f.檔案大小),
+      審核狀態: f.審核狀態 || "",
+      審核備註: f.審核備註 || "",
+      審核時間: f.審核時間 ? moment(f.審核時間).format("YYYY-MM-DD HH:mm:ss") : "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "審核狀態報表");
+    XLSX.writeFile(wb, `審核狀態報表_${moment().format("YYYYMMDD_HHmmss")}.xlsx`);
+  };
 
   const 篩選後 = 待審核檔案.filter(f => {
     if (篩選狀態 && f.審核狀態 !== 篩選狀態) return false;
@@ -92,9 +110,14 @@ export default function 審核管理頁面() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">審核管理</h1>
-        <p className="text-sm text-muted-foreground mt-1">管理永久區檔案的審核流程</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">審核管理</h1>
+          <p className="text-sm text-muted-foreground mt-1">管理永久區檔案的審核流程（共 {篩選後.length} 筆）</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={匯出Excel}>
+          <Download className="w-4 h-4 mr-1" />匯出 Excel
+        </Button>
       </div>
 
       {/* Filters */}

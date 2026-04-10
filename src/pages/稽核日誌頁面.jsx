@@ -10,6 +10,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { Search, Download, AlertTriangle, Filter } from "lucide-react";
+import * as XLSX from "xlsx";
 import { 組別列表 } from "@/lib/常數";
 import moment from "moment";
 
@@ -42,24 +43,23 @@ export default function 稽核日誌頁面() {
     return result;
   }, [日誌, 篩選操作, 篩選組別, 搜尋, 只看異常]);
 
-  const 匯出CSV = () => {
-    const headers = ["時間", "操作類型", "操作者", "IP位址", "目標檔案", "組別", "儲存區域", "詳細內容", "異常", "異常原因"];
-    const rows = 篩選後日誌.map(l => [
-      moment(l.created_date).format("YYYY-MM-DD HH:mm:ss"),
-      l.操作類型, l.操作者, l.操作者IP, l.目標檔案,
-      l.所屬組別, l.儲存區域, l.詳細內容,
-      l.是否異常 ? "是" : "否", l.異常原因 || ""
-    ]);
-    
-    const bom = "\uFEFF";
-    const csv = bom + [headers.join(","), ...rows.map(r => r.map(c => `"${(c || "").replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `稽核日誌_${moment().format("YYYYMMDD_HHmmss")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const 匯出Excel = () => {
+    const rows = 篩選後日誌.map(l => ({
+      時間: moment(l.created_date).format("YYYY-MM-DD HH:mm:ss"),
+      操作類型: l.操作類型 || "",
+      操作者: l.操作者 || "",
+      IP位址: l.操作者IP || "",
+      目標檔案: l.目標檔案 || "",
+      組別: l.所屬組別 || "",
+      儲存區域: l.儲存區域 || "",
+      詳細內容: l.詳細內容 || "",
+      是否異常: l.是否異常 ? "是" : "否",
+      異常原因: l.異常原因 || "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "稽核日誌");
+    XLSX.writeFile(wb, `稽核日誌_${moment().format("YYYYMMDD_HHmmss")}.xlsx`);
   };
 
   const 操作類型顏色 = {
@@ -86,8 +86,8 @@ export default function 稽核日誌頁面() {
             {只看異常 && <span className="text-destructive ml-1">（僅顯示異常）</span>}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={匯出CSV}>
-          <Download className="w-4 h-4 mr-1" />匯出 CSV
+        <Button variant="outline" size="sm" onClick={匯出Excel}>
+          <Download className="w-4 h-4 mr-1" />匯出 Excel
         </Button>
       </div>
 
