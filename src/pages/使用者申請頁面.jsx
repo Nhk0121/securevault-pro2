@@ -16,7 +16,6 @@ export default function 使用者申請頁面() {
   const [表單, set表單] = useState({
     姓名: "",
     員工編號: "",
-    電子信箱: "",
     聯絡電話: "",
     所屬組別: "",
     所屬課別: "",
@@ -27,14 +26,14 @@ export default function 使用者申請頁面() {
 
   const 送出申請 = async (e) => {
     e.preventDefault();
-    if (!表單.姓名 || !表單.電子信箱 || !表單.所屬組別) return;
+    if (!表單.姓名 || !表單.所屬組別) return;
     set載入中(true);
     try {
       await base44.entities.操作日誌.create({
         操作類型: "登入",
-        操作者: 表單.電子信箱,
+        操作者: 表單.姓名,
         目標檔案: "帳號申請",
-        詳細內容: `【帳號申請】姓名：${表單.姓名}，員工編號：${表單.員工編號}，信箱：${表單.電子信箱}，組別：${表單.所屬組別}，課別：${表單.所屬課別}，電話：${表單.聯絡電話}，申請原因：${表單.申請原因}`,
+        詳細內容: `【帳號申請】姓名：${表單.姓名}，員工編號：${表單.員工編號}，組別：${表單.所屬組別}，課別：${表單.所屬課別}，電話：${表單.聯絡電話}，申請原因：${表單.申請原因}`,
         所屬組別: 表單.所屬組別,
         是否異常: false,
       });
@@ -54,7 +53,7 @@ export default function 使用者申請頁面() {
             <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto" />
             <h2 className="text-xl font-bold">申請已送出</h2>
             <p className="text-muted-foreground text-sm">
-              管理員將審核您的申請後建立帳號，並以電子郵件通知您。<br />
+              管理員將審核您的申請後建立帳號，並通知您。<br />
               若有疑問請聯繫資訊部門。
             </p>
           </CardContent>
@@ -83,7 +82,7 @@ export default function 使用者申請頁面() {
               <UserPlus className="w-4 h-4" />申請使用帳號
             </CardTitle>
             <CardDescription>
-              請填寫以下資料，管理員審核後將以電子郵件通知您帳號資訊
+              請填寫以下資料，管理員審核後將通知您帳號資訊
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -108,15 +107,6 @@ export default function 使用者申請頁面() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>電子信箱 <span className="text-destructive">*</span></Label>
-                <Input
-                  type="email"
-                  placeholder="公司電子信箱"
-                  value={表單.電子信箱}
-                  onChange={e => 更新欄位("電子信箱", e.target.value)}
-                />
-              </div>
 
               <div className="space-y-1.5">
                 <Label>聯絡電話</Label>
@@ -163,7 +153,7 @@ export default function 使用者申請頁面() {
               <Button
                 className="w-full"
                 type="submit"
-                disabled={載入中 || !表單.姓名 || !表單.電子信箱 || !表單.所屬組別}
+                disabled={載入中 || !表單.姓名 || !表單.所屬組別}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
                 {載入中 ? "送出中..." : "送出申請"}

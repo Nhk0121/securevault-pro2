@@ -28,12 +28,8 @@ function 聯絡卡({ 使用者 }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-sm">{使用者.full_name || 使用者.帳號}</p>
-              {使用者.姓名代號 && (
-                <span className="text-xs text-muted-foreground font-mono">#{使用者.姓名代號}</span>
-              )}
               <Badge className={`${角色.class} text-xs`}>{角色.label}</Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">{使用者.email}</p>
             <div className="mt-2 space-y-1">
               {使用者.所屬組別 && (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -78,11 +74,10 @@ export default function 電話簿頁面() {
     const 關鍵字符合 = !搜尋 ||
       u.full_name?.includes(搜尋) ||
       u.帳號?.includes(搜尋) ||
-      u.email?.includes(搜尋) ||
       u.分機?.includes(搜尋) ||
       u.電話?.includes(搜尋) ||
-      u.姓名代號?.includes(搜尋) ||
-      u.所屬組別?.includes(搜尋);
+      u.所屬組別?.includes(搜尋) ||
+      u.所屬課別?.includes(搜尋);
     const 組別符合 = 篩選組別 === "all" || u.所屬組別 === 篩選組別;
     return 關鍵字符合 && 組別符合;
   });
