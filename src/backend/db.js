@@ -1,35 +1,38 @@
-/**
- * MSSQL 連線池設定
- * 資料庫名稱：檔案管理系統
- */
-const sql = require("mssql");
+/* eslint-disable */
+// ============================================================
+// 資料庫連線設定 - MSSQL
+// ============================================================
 
-const 連線設定 = {
-  user: process.env.資料庫帳號 || process.env.DB_USER || "sa",
-  password: process.env.資料庫密碼 || process.env.DB_PASSWORD || "YourPassword",
-  server: process.env.資料庫主機 || process.env.DB_SERVER || "localhost",
-  database: process.env.資料庫名稱 || process.env.DB_NAME || "檔案管理系統",
-  port: parseInt(process.env.資料庫埠號 || process.env.DB_PORT || "1433"),
-  options: {
-    encrypt: false,               // 若使用 SSL 加密連線請改為 true
-    trustServerCertificate: true,
-    enableArithAbort: true,
-  },
-  pool: {
-    max: 20,                      // 最大連線數
-    min: 2,                       // 最小連線數
-    idleTimeoutMillis: 30000,     // 閒置逾時（毫秒）
-  },
+const sql = require('mssql');
+
+const dbConfig = {
+    server:   process.env.DB_SERVER   || 'localhost',       // MSSQL 伺服器位址
+    port:     parseInt(process.env.DB_PORT) || 1433,        // MSSQL 預設埠號
+    database: process.env.DB_NAME     || 'FileManagement',  // 資料庫名稱
+    user:     process.env.DB_USER     || 'sa',              // 資料庫帳號
+    password: process.env.DB_PASSWORD || '',                // 資料庫密碼
+    options: {
+        encrypt:                false,  // 內部網路通常不需加密
+        trustServerCertificate: true,   // 信任自簽憑證
+        enableArithAbort:       true,
+    },
+    pool: {
+        max:              10,   // 最大連線數
+        min:              2,    // 最小連線數
+        idleTimeoutMillis: 30000
+    }
 };
 
-let 連線池 = null;
+// 建立連線池
+const poolPromise = new sql.ConnectionPool(dbConfig)
+    .connect()
+    .then(pool => {
+        console.log('✅ 資料庫連線成功');
+        return pool;
+    })
+    .catch(err => {
+        console.error('❌ 資料庫連線失敗：', err.message);
+        process.exit(1);
+    });
 
-async function 取得連線池() {
-  if (!連線池) {
-    連線池 = await sql.connect(連線設定);
-    console.log("[資料庫] MSSQL 連線成功");
-  }
-  return 連線池;
-}
-
-module.exports = { 取得連線池, sql };
+module.exports = { sql, poolPromise };

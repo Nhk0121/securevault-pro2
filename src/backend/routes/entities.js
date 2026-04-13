@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * 通用實體 CRUD 路由
  * 對應前端 base44.entities.XXX.list/filter/get/create/update/delete

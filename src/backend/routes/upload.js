@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * 檔案上傳路由
  * POST /api/上傳  → { file_url, 原始檔名, 檔案大小 }

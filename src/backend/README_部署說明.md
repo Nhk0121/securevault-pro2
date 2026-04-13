@@ -1,111 +1,149 @@
-# 雲端檔案管理系統 - WinServer 2019 部署說明
+# 雲端檔案管理系統 - Windows Server 2019 部署說明
 
-## 環境需求
+## 系統需求
 
-| 項目 | 版本 |
-|------|------|
-| Windows Server | 2019 |
-| Node.js | 20 LTS（[下載](https://nodejs.org/)） |
-| SQL Server | 2019 / Express |
-| IIS | 10（選用，也可直接用 Node） |
-
----
-
-## 步驟一：建立 MSSQL 資料庫
-
-1. 開啟 SQL Server Management Studio（SSMS）
-2. 建立資料庫：`CREATE DATABASE [檔案管理系統];`
-3. 執行 `schema.sql`（在 SSMS 選擇「檔案管理系統」後執行）
-4. 預設管理員帳號：`admin`，密碼：`admin`（首次登入須強制變更）
+| 項目 | 版本需求 |
+|------|---------|
+| 作業系統 | Windows Server 2019 |
+| 資料庫 | SQL Server 2019+ |
+| Node.js | v18.0.0 以上 |
+| IIS | 10.0（用於前端靜態檔案） |
+| PM2 | 最新版（Node.js 程序管理） |
 
 ---
 
-## 步驟二：設定後端
+## 部署步驟
 
-```powershell
+### 第一步：建立資料庫
+
+1. 開啟 **SQL Server Management Studio (SSMS)**
+2. 連線至您的 SQL Server 執行個體
+3. 開啟 `schema.sql` 檔案
+4. 執行全部 SQL 腳本
+5. 確認 `FileManagement` 資料庫已建立成功
+
+---
+
+### 第二步：後端 API 伺服器
+
+```bash
+# 1. 進入 backend 資料夾
 cd backend
+
+# 2. 安裝相依套件
+npm install
+
+# 3. 複製環境變數設定
 copy .env.example .env
-# 以記事本或 VS Code 編輯 .env，填入正確設定
+
+# 4. 編輯 .env 填入正確的資料庫連線資訊
 notepad .env
 
-npm install
-node server.js
-```
+# 5. 安裝 PM2（全域）
+npm install -g pm2
 
-後端預設在 `http://localhost:4000`
+# 6. 以 PM2 啟動伺服器
+pm2 start server.js --name file-management
+
+# 7. 設定 PM2 開機自動啟動
+pm2 startup
+pm2 save
+```
 
 ---
 
-## 步驟三：建置前端
+### 第三步：前端打包
 
-```powershell
-# 在前端根目錄
-# 建立 .env 並設定 API 位址
-echo VITE_API_BASE=http://你的伺服器IP:4000/api > .env
-
+```bash
+# 在專案根目錄執行
 npm install
 npm run build
-# 產出 dist/ 資料夾
+# 打包結果在 dist/ 資料夾
 ```
 
 ---
 
-## 步驟四：部署方案
+### 第四步：IIS 設定（前端）
 
-### 方案 A：Node.js 直接服務（最快速）
-```
-前端建置目錄=../dist  ← 在 .env 中設定
-node server.js        ← 同時提供前後端服務
-```
+1. 開啟 **IIS 管理員**
+2. 新增網站，實體路徑指向 `dist/` 資料夾
+3. 設定繫結（Binding）：埠號建議 `80` 或 `443`（HTTPS）
+4. 安裝 **URL Rewrite 模組**（支援 React Router）
+5. 在 `dist/` 資料夾新增 `web.config`：
 
-### 方案 B：IIS + Node.js（建議正式環境）
-1. IIS 安裝 `URL Rewrite` 模組（[下載](https://www.iis.net/downloads/microsoft/url-rewrite)）
-2. 前端 `dist/` 放到 IIS 網站根目錄
-3. IIS 設定反向代理，將 `/api/*` 轉到 `http://localhost:4000`
-4. Node.js 後端用 **NSSM** 或 **PM2** 設定為 Windows 服務
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="SPA路由支援" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+            <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="/index.html" />
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>
+```
 
 ---
 
-## 步驟五：設定為 Windows 服務（使用 NSSM）
+### 第五步：前端 API 連線設定
 
-```powershell
-# 下載 nssm.exe（https://nssm.cc/download）後：
-nssm install 雲端檔案管理後端 "C:\Program Files\nodejs\node.exe"
-nssm set 雲端檔案管理後端 AppDirectory "D:\FileManagement\backend"
-nssm set 雲端檔案管理後端 AppParameters "server.js"
-nssm set 雲端檔案管理後端 AppEnvironmentExtra "NODE_ENV=production"
-nssm start 雲端檔案管理後端
+修改前端的 `api/apiClient.js`，將 Base URL 改為本機 API 伺服器：
+
+```javascript
+const API_BASE_URL = 'http://localhost:3001/api';
+// 或使用實際 IP：http://192.168.x.x:3001/api
 ```
 
 ---
 
-## 使用者管理說明
+### 第六步：防火牆設定
 
-| 操作 | 說明 |
-|------|------|
-| 新增使用者 | 管理員在「使用者管理」頁面新增，預設密碼 = 帳號 |
-| 首次登入 | 系統強制要求變更密碼（密碼至少 8 字元） |
-| 忘記密碼 | 管理員至「使用者管理」→ 點擊「🔑 重置密碼」→ 密碼重置為帳號，下次登入須再次強制變更 |
-| 停用帳號 | 管理員可點擊「停用帳號」，停用後該帳號無法登入 |
-
----
-
-## 角色權限對照
-
-| 角色 | 永久區 | 時效區 | 回收桶 | 審核管理 | 使用者管理 | 系統設定 |
-|------|--------|--------|--------|----------|------------|----------|
-| 管理員 | ✅ 完整 | ✅ 完整 | ✅ | ✅ | ✅ | ✅ |
-| 資訊人員 | ✅（IP限制） | ✅ | ✅ | ✅ | ❌ | ❌ |
-| 一般使用者 | ✅（本組） | ✅ | ❌ | ❌ | ❌ | ❌ |
-| 外包人員 | ❌ | ✅（下載） | ❌ | ❌ | ❌ | ❌ |
+| 埠號 | 用途 | 方向 |
+|------|------|------|
+| 80 / 443 | IIS 前端網站 | 入站 |
+| 3001 | Node.js API（建議僅允許內網） | 入站 |
+| 1433 | MSSQL（建議僅允許本機） | 本機 |
 
 ---
 
-## 檔案儲存建議
+## 檔案儲存位置
+
+上傳的檔案存放於 `.env` 中設定的 `UPLOAD_PATH`，例如：
 
 ```
-上傳目錄=D:\FileStorage\uploads
+D:\FileStorage\uploads\
 ```
 
-請確保 Node.js 程序（NSSM 服務帳號）對此目錄具有讀寫權限。  
-建議定期備份此目錄及 MSSQL 資料庫。
+請確保：
+- 磁碟空間充足
+- 定期備份此資料夾
+- Node.js 程序對此資料夾有讀寫權限
+
+---
+
+## 常用 PM2 指令
+
+```bash
+pm2 list                          # 查看執行中的程序
+pm2 logs file-management          # 查看日誌
+pm2 restart file-management       # 重新啟動
+pm2 stop file-management          # 停止
+pm2 monit                         # 即時監控
+```
+
+---
+
+## 注意事項
+
+- `JWT_SECRET` 請設定為複雜的隨機字串，不要使用預設值
+- 資料庫密碼建議使用強密碼
+- 建議啟用 HTTPS（SSL 憑證）
+- 定期備份 MSSQL 資料庫與上傳檔案
