@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {

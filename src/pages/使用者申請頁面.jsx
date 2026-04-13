@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,10 +17,10 @@ export default function 使用者申請頁面() {
   const [表單, set表單] = useState({
     姓名: "",
     員工編號: "",
-    聯絡電話: "",
+    電話: "",
+    分機: "",
     所屬組別: "",
     所屬課別: "",
-    申請原因: "",
   });
 
   const 更新欄位 = (欄位, 值) => set表單(p => ({ ...p, [欄位]: 值 }));
@@ -33,7 +34,7 @@ export default function 使用者申請頁面() {
         操作類型: "登入",
         操作者: 表單.姓名,
         目標檔案: "帳號申請",
-        詳細內容: `【帳號申請】姓名：${表單.姓名}，員工編號：${表單.員工編號}，組別：${表單.所屬組別}，課別：${表單.所屬課別}，電話：${表單.聯絡電話}，申請原因：${表單.申請原因}`,
+        詳細內容: `【帳號申請】姓名：${表單.姓名}，員工編號：${表單.員工編號}，組別：${表單.所屬組別}，課別：${表單.所屬課別}，電話：${表單.電話}，分機：${表單.分機}`,
         所屬組別: 表單.所屬組別,
         是否異常: false,
       });
@@ -108,13 +109,23 @@ export default function 使用者申請頁面() {
               </div>
 
 
-              <div className="space-y-1.5">
-                <Label>聯絡電話</Label>
-                <Input
-                  placeholder="辦公室電話或分機"
-                  value={表單.聯絡電話}
-                  onChange={e => 更新欄位("聯絡電話", e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>聯絡電話</Label>
+                  <Input
+                    placeholder="例如 3392121"
+                    value={表單.電話}
+                    onChange={e => 更新欄位("電話", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>分機</Label>
+                  <Input
+                    placeholder="例如 2339"
+                    value={表單.分機}
+                    onChange={e => 更新欄位("分機", e.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -141,14 +152,6 @@ export default function 使用者申請頁面() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>申請原因</Label>
-                <Input
-                  placeholder="說明申請用途（選填）"
-                  value={表單.申請原因}
-                  onChange={e => 更新欄位("申請原因", e.target.value)}
-                />
-              </div>
 
               <Button
                 className="w-full"

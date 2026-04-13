@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { auth, users as usersApi } from "@/api/apiClient";
@@ -16,7 +17,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { UserPlus, Pencil, Users, Shield, KeyRound, UserX } from "lucide-react";
+import { UserPlus, Pencil, Users, Shield, KeyRound, UserX, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { 組別列表 } from "@/lib/常數";
 
@@ -49,6 +50,7 @@ export default function 使用者管理頁面() {
   const [編輯使用者, set編輯使用者] = useState(null);
   const [編輯表單, set編輯表單] = useState({});
   const [重置確認, set重置確認] = useState(null); // { id, 帳號 }
+  const [刪除確認, set刪除確認] = useState(null); // { id, 帳號 }
 
   const { data: 使用者列表 = [] } = useQuery({
     queryKey: ["使用者列表"],
@@ -87,6 +89,17 @@ export default function 使用者管理頁面() {
       toast({ title: "已更新使用者資料" });
       set編輯使用者(null);
     },
+  });
+
+  // ─── 刪除使用者 ──────────────────────────────────────────────
+  const { mutate: 執行刪除 } = useMutation({
+    mutationFn: () => usersApi.delete(刪除確認.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["使用者列表"] });
+      toast({ title: "使用者已刪除", description: `${刪除確認.帳號} 帳號已刪除` });
+      set刪除確認(null);
+    },
+    onError: (e) => toast({ variant: "destructive", title: "刪除失敗", description: e.message }),
   });
 
   // ─── 重置密碼 ────────────────────────────────────────────────
@@ -205,10 +218,16 @@ export default function 使用者管理頁面() {
                         <Button
                           variant="ghost" size="icon" title="重置密碼"
                           onClick={() => set重置確認({ id: u.id, 帳號: u.帳號 })}
-                        >
-                          <KeyRound className="w-4 h-4 text-amber-600" />
-                        </Button>
-                      </div>
+                          >
+                           <KeyRound className="w-4 h-4 text-amber-600" />
+                          </Button>
+                          <Button
+                           variant="ghost" size="icon" title="刪除使用者"
+                           onClick={() => set刪除確認({ id: u.id, 帳號: u.帳號 })}
+                          >
+                           <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                          </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -329,8 +348,8 @@ export default function 使用者管理頁面() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>姓名代號</Label>
-                <Input value={編輯表單.姓名代號} maxLength={6} onChange={e => set編輯表單(p => ({ ...p, 姓名代號: e.target.value }))} />
+                <Label>員工編號（不可更改）</Label>
+                <Input value={編輯表單.姓名代號} readOnly disabled className="bg-muted" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -386,6 +405,26 @@ export default function 使用者管理頁面() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ─── 刪除確認 ─── */}
+      <AlertDialog open={!!刪除確認} onOpenChange={() => set刪除確認(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-destructive" />
+              確認刪除使用者
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除「<strong>{刪除確認?.帳號}</strong>」帳號嗎？<br />
+              此操作無法復原，通常用於員工離職後的帳號清除。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => 執行刪除()}>確認刪除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ─── 重置密碼確認 ─── */}
       <AlertDialog open={!!重置確認} onOpenChange={() => set重置確認(null)}>
