@@ -14,6 +14,19 @@
       "default": "user",
       "description": "\u4f7f\u7528\u8005\u89d2\u8272\uff1asystem_admin=\u7cfb\u7d71\u7ba1\u7406\u54e1, admin=\u7ba1\u7406\u54e1, it_staff=\u8cc7\u8a0a\u4eba\u54e1, user=\u4e00\u822c\u4f7f\u7528\u8005, contractor=\u5916\u5305\u4eba\u54e1"
     },
+    "\u8077\u7a31": {
+      "type": "string",
+      "enum": [
+        "00.\u8655\u9577",
+        "01.\u526f\u8655\u9577",
+        "02.\u7d93\u7406",
+        "03.\u8ab2\u9577(\u4e3b\u4efb)",
+        "04.\u4e3b\u8fa6",
+        "05.\u7d93\u8fa6(\u54e1\u5de5)",
+        "06.\u5916\u5305\u4eba\u54e1"
+      ],
+      "description": "\u8077\u7a31\u7b49\u7d1a"
+    },
     "\u59d3\u540d\u4ee3\u865f": {
       "type": "string",
       "description": "6\u4f4d\u6578\u5b57\u59d3\u540d\u4ee3\u865f\uff0c\u4f8b\u5982123456"
@@ -68,5 +81,16 @@
       "default": false,
       "description": "\u5e33\u865f\u662f\u5426\u505c\u7528"
     }
-  }
+  },
+  "required": [
+    "\u59d3\u540d\u4ee3\u865f",
+    "\u6240\u5c6c\u7d44\u5225",
+    "\u6240\u5c6c\u8ab2\u5225",
+    "\u96fb\u8a71",
+    "\u5206\u6a5f",
+    "\u8cc7\u8a0a\u4eba\u54e1IP",
+    "\u6c38\u4e45\u5340\u591a\u7d44\u5225\u6b0a\u9650",
+    "\u516c\u53f8\u540d\u7a31",
+    "\u5916\u5305\u90e8\u9580"
+  ]
 }

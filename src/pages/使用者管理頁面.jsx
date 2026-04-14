@@ -19,7 +19,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserPlus, Pencil, Users, Shield, KeyRound, UserX, Trash2, Search } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { 組別列表 } from "@/lib/常數";
+import { 組別列表, 職稱列表 } from "@/lib/常數";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const 角色選項 = [
@@ -40,7 +40,7 @@ const 角色顏色 = {
 
 const 空表單 = {
   帳號: "", full_name: "", role: "user",
-  姓名代號: "", 所屬組別: "", 所屬課別: "", 電話: "", 分機: "",
+  職稱: "", 姓名代號: "", 所屬組別: "", 所屬課別: "", 電話: "", 分機: "",
   手機號碼: "", 資訊人員IP: "", 可上傳執行檔: false,
 };
 
@@ -129,6 +129,7 @@ export default function 使用者管理頁面() {
     set編輯表單({
       role: u.role || "user",
       full_name: u.full_name || "",
+      職稱: u.職稱 || "",
       姓名代號: u.姓名代號 || "",
       所屬組別: u.所屬組別 || "",
       所屬課別: u.所屬課別 || "",
@@ -208,6 +209,7 @@ export default function 使用者管理頁面() {
                 <TableRow>
                   <TableHead>帳號（員工編號）</TableHead>
                   <TableHead>姓名</TableHead>
+                  <TableHead>職稱</TableHead>
                   <TableHead>組別</TableHead>
                   <TableHead>課別</TableHead>
                   <TableHead>分機</TableHead>
@@ -224,6 +226,7 @@ export default function 使用者管理頁面() {
                       {u.姓名代號 && <p className="text-xs text-muted-foreground font-mono">{u.姓名代號}</p>}
                     </TableCell>
                     <TableCell className="text-sm">{u.full_name || "—"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{u.職稱 || "—"}</TableCell>
                     <TableCell className="text-sm">{u.所屬組別 || "—"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{u.所屬課別 || "—"}</TableCell>
                     <TableCell>{u.分機 || "—"}</TableCell>
@@ -290,14 +293,25 @@ export default function 使用者管理頁面() {
                 <Input value={新增表單.full_name} onChange={e => set新增表單(p => ({ ...p, full_name: e.target.value }))} />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>角色</Label>
-              <Select value={新增表單.role} onValueChange={v => set新增表單(p => ({ ...p, role: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {角色選項.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>角色</Label>
+                <Select value={新增表單.role} onValueChange={v => set新增表單(p => ({ ...p, role: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {角色選項.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>職稱</Label>
+                <Select value={新增表單.職稱} onValueChange={v => set新增表單(p => ({ ...p, 職稱: v }))}>
+                  <SelectTrigger><SelectValue placeholder="選擇職稱" /></SelectTrigger>
+                  <SelectContent>
+                    {職稱列表.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -365,6 +379,15 @@ export default function 使用者管理頁面() {
                   <SelectContent>{角色選項.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              <div className="space-y-1.5">
+                <Label>職稱</Label>
+                <Select value={編輯表單.職稱} onValueChange={v => set編輯表單(p => ({ ...p, 職稱: v }))}>
+                  <SelectTrigger><SelectValue placeholder="選擇職稱" /></SelectTrigger>
+                  <SelectContent>{職稱列表.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>員工編號（不可更改）</Label>
                 <Input value={編輯表單.姓名代號} readOnly disabled className="bg-muted" />

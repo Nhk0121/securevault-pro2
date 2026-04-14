@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { User, Save, CheckCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { 組別列表 } from "@/lib/常數";
+import { 組別列表, 職稱列表 } from "@/lib/常數";
 
 const 角色標籤 = {
   admin: { label: "管理員", color: "bg-red-100 text-red-800" },
@@ -23,6 +23,7 @@ export default function 個人資料頁面() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [表單, set表單] = useState({
+    職稱: "",
     姓名代號: "",
     所屬組別: "",
     所屬課別: "",
@@ -44,6 +45,7 @@ export default function 個人資料頁面() {
   useEffect(() => {
     if (我) {
       set表單({
+        職稱: 我.職稱 || "",
         姓名代號: 我.姓名代號 || "",
         所屬組別: 我.所屬組別 || "",
         所屬課別: 我.所屬課別 || "",
@@ -122,6 +124,15 @@ export default function 個人資料頁面() {
           <CardTitle className="text-base">個人資料設定</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>職稱</Label>
+            <Select value={表單.職稱} onValueChange={v => set表單(p => ({ ...p, 職稱: v }))}>
+              <SelectTrigger><SelectValue placeholder="選擇職稱" /></SelectTrigger>
+              <SelectContent>
+                {職稱列表.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>姓名代號 <span className="text-muted-foreground text-xs">（6位數字）</span></Label>
