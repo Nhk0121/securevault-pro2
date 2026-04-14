@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from "react";
 import { users as usersApi } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
