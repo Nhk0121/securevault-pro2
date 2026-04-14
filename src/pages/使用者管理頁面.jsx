@@ -39,9 +39,9 @@ const 角色顏色 = {
 };
 
 const 空表單 = {
-  帳號: "", email: "", full_name: "", role: "user",
+  帳號: "", full_name: "", role: "user",
   姓名代號: "", 所屬組別: "", 所屬課別: "", 電話: "", 分機: "",
-  資訊人員IP: "", 公司名稱: "", 外包部門: "", 可上傳執行檔: false,
+  手機號碼: "", 資訊人員IP: "", 可上傳執行檔: false,
 };
 
 export default function 使用者管理頁面() {
@@ -128,8 +128,7 @@ export default function 使用者管理頁面() {
       電話: u.電話 || "",
       分機: u.分機 || "",
       資訊人員IP: u.資訊人員IP || "",
-      公司名稱: u.公司名稱 || "",
-      外包部門: u.外包部門 || "",
+      手機號碼: u.手機號碼 || "",
       停用: u.停用 || false,
       永久區多組別權限: u.永久區多組別權限 || [],
       可上傳執行檔: u.可上傳執行檔 || false,
@@ -325,15 +324,9 @@ export default function 使用者管理頁面() {
               </div>
             )}
             {新增表單.role === "contractor" && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>公司名稱</Label>
-                  <Input value={新增表單.公司名稱} onChange={e => set新增表單(p => ({ ...p, 公司名稱: e.target.value }))} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>部門</Label>
-                  <Input value={新增表單.外包部門} onChange={e => set新增表單(p => ({ ...p, 外包部門: e.target.value }))} />
-                </div>
+              <div className="space-y-1.5">
+                <Label>手機號碼</Label>
+                <Input value={新增表單.手機號碼} maxLength={10} onChange={e => set新增表單(p => ({ ...p, 手機號碼: e.target.value.replace(/\D/g, "") }))} placeholder="10位數字" />
               </div>
             )}
           </div>
@@ -399,6 +392,12 @@ export default function 使用者管理頁面() {
               <div className="space-y-1.5">
                 <Label>資訊人員IP白名單</Label>
                 <Input value={編輯表單.資訊人員IP} onChange={e => set編輯表單(p => ({ ...p, 資訊人員IP: e.target.value }))} placeholder="192.168.1.10, 192.168.1.11" />
+              </div>
+            )}
+            {編輯表單.role === "contractor" && (
+              <div className="space-y-1.5">
+                <Label>手機號碼</Label>
+                <Input value={編輯表單.手機號碼} maxLength={10} onChange={e => set編輯表單(p => ({ ...p, 手機號碼: e.target.value.replace(/\D/g, "") }))} placeholder="10位數字" />
               </div>
             )}
 
