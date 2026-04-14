@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ function 是否為課別層(路徑堆疊) {
 }
 
 export default function 檔案區({ 儲存區域類型 }) {
+  const { user: 目前使用者 } = useAuth();
   const [選擇組別, set選擇組別] = useState("");
   const [選擇課別, set選擇課別] = useState("");
   const [搜尋關鍵字, set搜尋關鍵字] = useState("");
@@ -229,6 +231,7 @@ export default function 檔案區({ 儲存區域類型 }) {
           進入資料夾={進入資料夾}
           儲存區域={儲存區域類型}
           重新整理={重新整理}
+          目前使用者={目前使用者}
         />
       ) : (
         <檔案列表
@@ -237,6 +240,7 @@ export default function 檔案區({ 儲存區域類型 }) {
           進入資料夾={進入資料夾}
           儲存區域={儲存區域類型}
           重新整理={重新整理}
+          目前使用者={目前使用者}
         />
       )}
 
@@ -249,6 +253,7 @@ export default function 檔案區({ 儲存區域類型 }) {
         預設課別={選擇課別 === "__all__" ? "" : 選擇課別}
         預設資料夾ID={目前資料夾?.id || ""}
         重新整理={重新整理}
+        目前使用者={目前使用者}
       />
       <新增資料夾對話框
         開啟={顯示新增資料夾}

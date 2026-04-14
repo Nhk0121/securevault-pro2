@@ -5,13 +5,14 @@
     "role": {
       "type": "string",
       "enum": [
+        "system_admin",
         "admin",
         "it_staff",
         "user",
         "contractor"
       ],
       "default": "user",
-      "description": "\u4f7f\u7528\u8005\u89d2\u8272"
+      "description": "\u4f7f\u7528\u8005\u89d2\u8272\uff1asystem_admin=\u7cfb\u7d71\u7ba1\u7406\u54e1, admin=\u7ba1\u7406\u54e1, it_staff=\u8cc7\u8a0a\u4eba\u54e1, user=\u4e00\u822c\u4f7f\u7528\u8005, contractor=\u5916\u5305\u4eba\u54e1"
     },
     "\u59d3\u540d\u4ee3\u865f": {
       "type": "string",
@@ -35,12 +36,37 @@
     },
     "\u8cc7\u8a0a\u4eba\u54e1IP": {
       "type": "string",
-      "description": "\u8cc7\u8a0a\u4eba\u54e1\u7d81\u5b9aIP\uff08\u50c5it_staff\u89d2\u8272\u4f7f\u7528\uff09"
+      "description": "\u8cc7\u8a0a\u4eba\u54e1\u7d81\u5b9aIP\uff08\u50c5it_staff\u89d2\u8272\u4f7f\u7528\uff09\uff0c\u9017\u865f\u5206\u9694\u591a\u500bIP"
+    },
+    "\u6c38\u4e45\u5340\u591a\u7d44\u5225\u6b0a\u9650": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u53ef\u64cd\u4f5c\u6c38\u4e45\u5340\u7684\u984d\u5916\u7d44\u5225\u6e05\u55ae\uff08\u9664\u4e86\u81ea\u5df1\u7684\u6240\u5c6c\u7d44\u5225\u5916\uff09"
+    },
+    "\u53ef\u4e0a\u50b3\u57f7\u884c\u6a94": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u662f\u5426\u5141\u8a31\u4e0a\u50b3\u57f7\u884c\u6a94\uff08\u9700\u7cfb\u7d71\u7ba1\u7406\u54e1\u6388\u6b0a\uff09"
     },
     "\u8cc7\u6599\u586b\u5beb\u5b8c\u6210": {
       "type": "boolean",
       "default": false,
       "description": "\u4f7f\u7528\u8005\u662f\u5426\u5df2\u5b8c\u6210\u500b\u4eba\u8cc7\u6599\u586b\u5beb"
+    },
+    "\u516c\u53f8\u540d\u7a31": {
+      "type": "string",
+      "description": "\u5916\u5305\u4eba\u54e1\u6240\u5c6c\u516c\u53f8\u540d\u7a31"
+    },
+    "\u5916\u5305\u90e8\u9580": {
+      "type": "string",
+      "description": "\u5916\u5305\u4eba\u54e1\u670d\u52d9\u90e8\u9580"
+    },
+    "\u505c\u7528": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u5e33\u865f\u662f\u5426\u505c\u7528"
     }
   }
 }

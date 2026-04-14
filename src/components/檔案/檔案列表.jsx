@@ -14,6 +14,7 @@ import {
   CornerUpLeft, AlertTriangle, Clock, CheckCircle, XCircle, Pencil
 } from "lucide-react";
 import { 格式化檔案大小 } from "@/lib/常數";
+import { 可操作永久區 } from "@/lib/權限";
 import 檔案圖示元件 from "./檔案圖示";
 import 預覽對話框 from "./預覽對話框";
 import 線上編輯對話框 from "./線上編輯對話框";
@@ -31,7 +32,7 @@ const 審核狀態樣式 = {
 
 export default function 檔案列表({
   檔案清單 = [], 資料夾清單 = [], 進入資料夾,
-  儲存區域, 重新整理, 是否為回收桶 = false
+  儲存區域, 重新整理, 是否為回收桶 = false, 目前使用者 = null
 }) {
   const [預覽檔案, set預覽檔案] = useState(null);
   const [編輯檔案, set編輯檔案] = useState(null);
@@ -147,7 +148,10 @@ export default function 檔案列表({
               </TableRow>
             ))}
 
-            {檔案清單.map(file => (
+            {檔案清單.map(file => {
+              // 永久區：只有該組別成員/管理員可寫入（刪除、編輯）
+              const 有寫入權限 = 儲存區域 !== "永久區" || 是否為回收桶 || 可操作永久區(目前使用者, file.所屬組別);
+              return (
               <TableRow key={file.id} className="hover:bg-muted/30">
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -197,7 +201,7 @@ export default function 檔案列表({
                       <DropdownMenuItem onClick={() => 下載檔案(file)}>
                         <Download className="w-4 h-4 mr-2" />下載
                       </DropdownMenuItem>
-                      {可編輯副檔名.includes((file.副檔名 || "").toLowerCase()) && (
+                      {有寫入權限 && 可編輯副檔名.includes((file.副檔名 || "").toLowerCase()) && (
                         <DropdownMenuItem onClick={() => set編輯檔案(file)}>
                           <Pencil className="w-4 h-4 mr-2" />線上編輯
                         </DropdownMenuItem>
@@ -211,16 +215,17 @@ export default function 檔案列表({
                             <Trash2 className="w-4 h-4 mr-2" />永久刪除
                           </DropdownMenuItem>
                         </>
-                      ) : (
+                      ) : 有寫入權限 ? (
                         <DropdownMenuItem onClick={() => 移至回收桶(file)} className="text-destructive">
                           <Trash2 className="w-4 h-4 mr-2" />移至回收桶
                         </DropdownMenuItem>
-                      )}
+                      ) : null}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
 
             {檔案清單.length === 0 && 資料夾清單.length === 0 && (
               <TableRow>

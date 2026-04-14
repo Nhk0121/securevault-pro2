@@ -11,6 +11,7 @@ import {
   CornerUpLeft, AlertTriangle, Clock, CheckCircle, XCircle, Pencil
 } from "lucide-react";
 import { 格式化檔案大小 } from "@/lib/常數";
+import { 可操作永久區 } from "@/lib/權限";
 import 檔案圖示元件 from "./檔案圖示";
 import 預覽對話框 from "./預覽對話框";
 import 線上編輯對話框 from "./線上編輯對話框";
@@ -28,7 +29,7 @@ const 審核狀態樣式 = {
 
 export default function 圖像檔案列表({
   檔案清單 = [], 資料夾清單 = [], 進入資料夾,
-  儲存區域, 重新整理, 是否為回收桶 = false
+  儲存區域, 重新整理, 是否為回收桶 = false, 目前使用者 = null
 }) {
   const [預覽檔案, set預覽檔案] = useState(null);
   const [編輯檔案, set編輯檔案] = useState(null);
@@ -122,42 +123,47 @@ export default function 圖像檔案列表({
               className="group relative flex flex-col items-center gap-2 p-4 rounded-xl border bg-card hover:border-primary hover:shadow-md transition-all duration-200"
             >
               {/* 操作選單 */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => e.stopPropagation()}>
-                      <MoreVertical className="w-3.5 h-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => 預覽(file)}>
-                      <Eye className="w-4 h-4 mr-2" />預覽
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => 下載檔案(file)}>
-                      <Download className="w-4 h-4 mr-2" />下載
-                    </DropdownMenuItem>
-                    {可編輯副檔名.includes((file.副檔名 || "").toLowerCase()) && (
-                      <DropdownMenuItem onClick={() => set編輯檔案(file)}>
-                        <Pencil className="w-4 h-4 mr-2" />線上編輯
+              {(() => {
+                const 有寫入權限 = 儲存區域 !== "永久區" || 是否為回收桶 || 可操作永久區(目前使用者, file.所屬組別);
+                return (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => e.stopPropagation()}>
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => 預覽(file)}>
+                        <Eye className="w-4 h-4 mr-2" />預覽
                       </DropdownMenuItem>
-                    )}
-                    {是否為回收桶 ? (
-                      <>
-                        <DropdownMenuItem onClick={() => 還原檔案(file)}>
-                          <CornerUpLeft className="w-4 h-4 mr-2" />還原
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => 永久刪除(file)} className="text-destructive">
-                          <Trash2 className="w-4 h-4 mr-2" />永久刪除
-                        </DropdownMenuItem>
-                      </>
-                    ) : (
-                      <DropdownMenuItem onClick={() => 移至回收桶(file)} className="text-destructive">
-                        <Trash2 className="w-4 h-4 mr-2" />移至回收桶
+                      <DropdownMenuItem onClick={() => 下載檔案(file)}>
+                        <Download className="w-4 h-4 mr-2" />下載
                       </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                      {有寫入權限 && 可編輯副檔名.includes((file.副檔名 || "").toLowerCase()) && (
+                        <DropdownMenuItem onClick={() => set編輯檔案(file)}>
+                          <Pencil className="w-4 h-4 mr-2" />線上編輯
+                        </DropdownMenuItem>
+                      )}
+                      {是否為回收桶 ? (
+                        <>
+                          <DropdownMenuItem onClick={() => 還原檔案(file)}>
+                            <CornerUpLeft className="w-4 h-4 mr-2" />還原
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => 永久刪除(file)} className="text-destructive">
+                            <Trash2 className="w-4 h-4 mr-2" />永久刪除
+                          </DropdownMenuItem>
+                        </>
+                      ) : 有寫入權限 ? (
+                        <DropdownMenuItem onClick={() => 移至回收桶(file)} className="text-destructive">
+                          <Trash2 className="w-4 h-4 mr-2" />移至回收桶
+                        </DropdownMenuItem>
+                      ) : null}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                );
+              })()}
 
               {/* 圖示 */}
               <div

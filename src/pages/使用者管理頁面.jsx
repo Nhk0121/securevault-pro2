@@ -17,11 +17,13 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { UserPlus, Pencil, Users, Shield, KeyRound, UserX, Trash2 } from "lucide-react";
+import { UserPlus, Pencil, Users, Shield, KeyRound, UserX, Trash2, Search } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { 組別列表 } from "@/lib/常數";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const 角色選項 = [
+  { value: "system_admin", label: "系統管理員" },
   { value: "admin", label: "管理員" },
   { value: "it_staff", label: "資訊人員" },
   { value: "user", label: "一般使用者" },
@@ -29,6 +31,7 @@ const 角色選項 = [
 ];
 
 const 角色顏色 = {
+  system_admin: "bg-red-200 text-red-900",
   admin: "bg-red-100 text-red-800",
   it_staff: "bg-purple-100 text-purple-800",
   user: "bg-blue-100 text-blue-800",
@@ -38,13 +41,15 @@ const 角色顏色 = {
 const 空表單 = {
   帳號: "", email: "", full_name: "", role: "user",
   姓名代號: "", 所屬組別: "", 所屬課別: "", 電話: "", 分機: "",
-  資訊人員IP: "", 公司名稱: "", 外包部門: "",
+  資訊人員IP: "", 公司名稱: "", 外包部門: "", 可上傳執行檔: false,
 };
 
 export default function 使用者管理頁面() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [搜尋, set搜尋] = useState("");
+  const [篩選角色, set篩選角色] = useState("all");
+  const [篩選組別, set篩選組別] = useState("all");
   const [新增對話框, set新增對話框] = useState(false);
   const [新增表單, set新增表單] = useState(空表單);
   const [編輯使用者, set編輯使用者] = useState(null);
@@ -126,16 +131,17 @@ export default function 使用者管理頁面() {
       公司名稱: u.公司名稱 || "",
       外包部門: u.外包部門 || "",
       停用: u.停用 || false,
+      永久區多組別權限: u.永久區多組別權限 || [],
+      可上傳執行檔: u.可上傳執行檔 || false,
     });
   };
 
-  const 篩選後使用者 = 使用者列表.filter(u =>
-    !搜尋 ||
-    u.email?.includes(搜尋) ||
-    u.full_name?.includes(搜尋) ||
-    u.帳號?.includes(搜尋) ||
-    u.姓名代號?.includes(搜尋)
-  );
+  const 篩選後使用者 = 使用者列表.filter(u => {
+    if (搜尋 && !u.email?.includes(搜尋) && !u.full_name?.includes(搜尋) && !u.帳號?.includes(搜尋) && !u.姓名代號?.includes(搜尋)) return false;
+    if (篩選角色 !== "all" && u.role !== 篩選角色) return false;
+    if (篩選組別 !== "all" && u.所屬組別 !== 篩選組別) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -151,13 +157,30 @@ export default function 使用者管理頁面() {
             <Users className="w-4 h-4" />
             使用者列表（共 {使用者列表.length} 人）
           </CardTitle>
-          <div className="flex gap-2 flex-wrap">
-            <Input
-              placeholder="搜尋姓名、信箱、帳號..."
-              className="w-56"
-              value={搜尋}
-              onChange={e => set搜尋(e.target.value)}
-            />
+          <div className="flex gap-2 flex-wrap items-center">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                placeholder="搜尋姓名、信箱、帳號..."
+                className="w-52 pl-8"
+                value={搜尋}
+                onChange={e => set搜尋(e.target.value)}
+              />
+            </div>
+            <Select value={篩選角色} onValueChange={set篩選角色}>
+              <SelectTrigger className="w-32"><SelectValue placeholder="角色" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部角色</SelectItem>
+                {角色選項.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={篩選組別} onValueChange={set篩選組別}>
+              <SelectTrigger className="w-36"><SelectValue placeholder="組別" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部組別</SelectItem>
+                {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+              </SelectContent>
+            </Select>
             <Button onClick={() => { set新增表單(空表單); set新增對話框(true); }}>
               <UserPlus className="w-4 h-4 mr-2" />
               新增使用者
@@ -378,6 +401,51 @@ export default function 使用者管理頁面() {
                 <Input value={編輯表單.資訊人員IP} onChange={e => set編輯表單(p => ({ ...p, 資訊人員IP: e.target.value }))} placeholder="192.168.1.10, 192.168.1.11" />
               </div>
             )}
+
+            {/* 永久區多組別權限 */}
+            {(編輯表單.role === "user" || 編輯表單.role === "it_staff") && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  <Shield className="w-3.5 h-3.5" />
+                  永久區多組別操作權限
+                </Label>
+                <p className="text-xs text-muted-foreground">除所屬組別外，額外授予哪些組別的永久區上傳/刪除權限</p>
+                <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto border rounded p-2">
+                  {組別列表.map(g => (
+                    <div key={g} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`perm-${g}`}
+                        checked={(編輯表單.永久區多組別權限 || []).includes(g)}
+                        onCheckedChange={(checked) => {
+                          set編輯表單(p => {
+                            const cur = p.永久區多組別權限 || [];
+                            return {
+                              ...p,
+                              永久區多組別權限: checked ? [...cur, g] : cur.filter(x => x !== g)
+                            };
+                          });
+                        }}
+                      />
+                      <label htmlFor={`perm-${g}`} className="text-xs cursor-pointer">{g}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 執行檔上傳授權 */}
+            <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <Checkbox
+                id="exe-perm"
+                checked={!!編輯表單.可上傳執行檔}
+                onCheckedChange={v => set編輯表單(p => ({ ...p, 可上傳執行檔: !!v }))}
+              />
+              <div>
+                <label htmlFor="exe-perm" className="text-sm font-medium cursor-pointer">授權上傳執行檔</label>
+                <p className="text-xs text-muted-foreground">允許此使用者上傳 .exe, .bat, .cmd 等執行檔</p>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3">
               <Label>帳號狀態</Label>
               <Button
