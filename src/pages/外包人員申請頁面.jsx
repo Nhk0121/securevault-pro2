@@ -4,23 +4,13 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
-import { UserPlus, Building2, Clock, Info } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { 組別列表 } from "@/lib/常數";
+import { Building2, Clock, Info } from "lucide-react";
 
 export default function 外包人員申請頁面() {
-  const { toast } = useToast();
   const [我, set我] = useState(null);
-  const [邀請郵件, set邀請郵件] = useState("");
-  const [邀請公司, set邀請公司] = useState("");
-  const [負責組別, set負責組別] = useState("");
 
   useEffect(() => {
     base44.auth.me().then(set我).catch(() => {});
@@ -32,18 +22,6 @@ export default function 外包人員申請頁面() {
   });
 
   const 外包人員列表 = 所有使用者.filter(u => u.role === "contractor");
-
-  const 邀請外包 = async () => {
-    if (!邀請郵件.trim() || !負責組別) return;
-    await base44.users.inviteUser(邀請郵件.trim(), "user");
-    toast({
-      title: "邀請已送出",
-      description: `已邀請外包人員 ${邀請郵件}，請在使用者管理頁面將角色改為「外包人員」`,
-    });
-    set邀請郵件("");
-    set邀請公司("");
-    set負責組別("");
-  };
 
   const 是管理員 = 我?.role === "admin";
 
@@ -81,58 +59,6 @@ export default function 外包人員申請頁面() {
                 <li>不可存取稽核日誌、審核管理、系統設定等管理功能</li>
               </ul>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 邀請外包人員 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <UserPlus className="w-4 h-4" />
-            邀請外包人員
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label>電子信箱</Label>
-              <Input
-                placeholder="contractor@company.com"
-                value={邀請郵件}
-                onChange={e => set邀請郵件(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>廠商公司名稱</Label>
-              <Input
-                placeholder="公司名稱（備註用）"
-                value={邀請公司}
-                onChange={e => set邀請公司(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>負責組別</Label>
-              <Select value={負責組別} onValueChange={set負責組別}>
-                <SelectTrigger>
-                  <SelectValue placeholder="選擇組別" />
-                </SelectTrigger>
-                <SelectContent>
-                  {組別列表.map(g => (
-                    <SelectItem key={g} value={g}>{g}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={邀請外包} disabled={!邀請郵件.trim() || !負責組別}>
-              <UserPlus className="w-4 h-4 mr-2" />
-              送出邀請
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              送出後請至「使用者管理」將該帳號角色設為「外包人員」
-            </p>
           </div>
         </CardContent>
       </Card>
