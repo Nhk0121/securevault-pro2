@@ -9,9 +9,10 @@ import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList,
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
-import { Upload, FolderPlus, Search, ChevronRight, Home } from "lucide-react";
+import { Upload, FolderPlus, Search, ChevronRight, Home, LayoutGrid, List } from "lucide-react";
 import { 組別列表 } from "@/lib/常數";
 import 檔案列表 from "@/components/檔案/檔案列表";
+import 圖像檔案列表 from "@/components/檔案/圖像檔案列表";
 import 上傳對話框 from "@/components/檔案/上傳對話框";
 import 新增資料夾對話框 from "@/components/檔案/新增資料夾對話框";
 
@@ -28,6 +29,7 @@ export default function 檔案區({ 儲存區域類型 }) {
   const [顯示上傳, set顯示上傳] = useState(false);
   const [顯示新增資料夾, set顯示新增資料夾] = useState(false);
   const [路徑堆疊, set路徑堆疊] = useState([]); // [{id, name, level, 是課別}]
+  const [圖像模式, set圖像模式] = useState(false);
   const queryClient = useQueryClient();
 
   const 目前資料夾 = 路徑堆疊.length > 0 ? 路徑堆疊[路徑堆疊.length - 1] : null;
@@ -106,9 +108,29 @@ export default function 檔案區({ 儲存區域類型 }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* 切換顯示模式 */}
+          <div className="flex items-center border rounded-md overflow-hidden">
+            <Button
+              variant={圖像模式 ? "ghost" : "secondary"}
+              size="icon"
+              className="h-8 w-8 rounded-none"
+              onClick={() => set圖像模式(false)}
+              title="列表模式"
+            >
+              <List className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={圖像模式 ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8 rounded-none"
+              onClick={() => set圖像模式(true)}
+              title="圖像模式"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
           {選擇課別 && (
             <>
-              {/* 禁止在課別資料夾層建立子資料夾，避免結構錯亂 */}
               {!是否為課別層(路徑堆疊) && (
                 <Button variant="outline" size="sm" onClick={() => set顯示新增資料夾(true)}>
                   <FolderPlus className="w-4 h-4 mr-1" />新增資料夾
@@ -200,6 +222,14 @@ export default function 檔案區({ 儲存區域類型 }) {
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
         </div>
+      ) : 圖像模式 ? (
+        <圖像檔案列表
+          檔案清單={篩選後檔案}
+          資料夾清單={篩選後資料夾}
+          進入資料夾={進入資料夾}
+          儲存區域={儲存區域類型}
+          重新整理={重新整理}
+        />
       ) : (
         <檔案列表
           檔案清單={篩選後檔案}
