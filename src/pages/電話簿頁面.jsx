@@ -31,6 +31,7 @@ function 聯絡卡({ 使用者 }) {
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-sm">{使用者.full_name || 使用者.帳號}</p>
               <Badge className={`${角色.class} text-xs`}>{角色.label}</Badge>
+              {使用者.職稱 && <Badge variant="outline" className="text-xs">{使用者.職稱}</Badge>}
             </div>
             <div className="mt-2 space-y-1">
               {使用者.所屬組別 && (

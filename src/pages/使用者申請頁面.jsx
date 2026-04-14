@@ -8,12 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HardDrive, CheckCircle2, UserPlus, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { 組別列表 } from "@/lib/常數";
+import { 組別列表, 職稱列表 } from "@/lib/常數";
 
 const 表單類型 = ["employee", "contractor"];
 
 const 空員工表單 = {
-  姓名: "", 員工編號: "", 電話: "", 分機: "", 所屬組別: "", 所屬課別: "",
+  姓名: "", 職稱: "", 員工編號: "", 電話: "", 分機: "", 所屬組別: "", 所屬課別: "",
 };
 
 const 空外包表單 = {
@@ -156,6 +156,16 @@ export default function 使用者申請頁面() {
                       onChange={e => 更新員工欄位("員工編號", e.target.value)}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>職稱</Label>
+                  <Select value={員工表單.職稱} onValueChange={v => 更新員工欄位("職稱", v)}>
+                    <SelectTrigger><SelectValue placeholder="選擇職稱（選填）" /></SelectTrigger>
+                    <SelectContent>
+                      {職稱列表.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
