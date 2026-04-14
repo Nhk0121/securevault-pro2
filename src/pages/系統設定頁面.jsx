@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Plus, X, Save, Shield, Wifi, Users, Settings } from "lucide-react";
+import { Plus, X, Save, Shield, Wifi, Users, Settings, Type, HardDrive } from "lucide-react";
 import { 組別列表 } from "@/lib/常數";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -28,6 +28,8 @@ export default function 系統設定頁面() {
   });
 
   const 設定 = 設定列表[0] || {};
+  const [系統名稱, set系統名稱] = useState("雲端檔案管理系統");
+  const [系統副標題, set系統副標題] = useState("");
   const [允許IP, set允許IP] = useState([]);
   const [新IP, set新IP] = useState("");
   const [審核人清單, set審核人清單] = useState([]);
@@ -36,14 +38,21 @@ export default function 系統設定頁面() {
   const [資料夾名上限, set資料夾名上限] = useState(30);
   const [異常次數, set異常次數] = useState(20);
   const [異常分鐘, set異常分鐘] = useState(10);
+  const [各組空間, set各組空間] = useState([]);
 
   // new reviewer
   const [新審核組別, set新審核組別] = useState("");
   const [新審核信箱, set新審核信箱] = useState("");
   const [新審核IP, set新審核IP] = useState("");
 
+  // new group space
+  const [新空間組別, set新空間組別] = useState("");
+  const [新空間MB, set新空間MB] = useState("");
+
   useEffect(() => {
     if (設定.id) {
+      set系統名稱(設定.系統名稱 || "雲端檔案管理系統");
+      set系統副標題(設定.系統副標題 || "");
       set允許IP(設定.允許上傳執行檔IP || []);
       set審核人清單(設定.組別審核人 || []);
       set時效天數(設定.時效區天數 || 30);
@@ -51,10 +60,11 @@ export default function 系統設定頁面() {
       set資料夾名上限(設定.資料夾名稱長度上限 || 30);
       set異常次數(設定.異常偵測下載次數 || 20);
       set異常分鐘(設定.異常偵測時間範圍分鐘 || 10);
+      set各組空間(設定.各組空間限制MB || []);
     }
   }, [設定.id]);
 
-  const 是否為管理員 = 使用者?.role === "admin";
+  const 是否為管理員 = 使用者?.role === "admin" || 使用者?.role === "system_admin";
 
   const 新增IP = () => {
     if (!新IP.trim()) return;
@@ -78,11 +88,30 @@ export default function 系統設定頁面() {
     set審核人清單(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const 新增組空間 = () => {
+    if (!新空間組別 || !新空間MB) return;
+    const mb = Number(新空間MB);
+    if (isNaN(mb) || mb <= 0) return;
+    set各組空間(prev => {
+      const filtered = prev.filter(x => x.組別 !== 新空間組別);
+      return [...filtered, { 組別: 新空間組別, 上限MB: mb }];
+    });
+    set新空間組別("");
+    set新空間MB("");
+  };
+
+  const 移除組空間 = (組別) => {
+    set各組空間(prev => prev.filter(x => x.組別 !== 組別));
+  };
+
   const 儲存設定 = async () => {
     const data = {
       設定名稱: "主要設定",
+      系統名稱: 系統名稱.trim() || "雲端檔案管理系統",
+      系統副標題: 系統副標題.trim(),
       允許上傳執行檔IP: 允許IP,
       組別審核人: 審核人清單,
+      各組空間限制MB: 各組空間,
       時效區天數: 時效天數,
       檔案名稱長度上限: 檔名上限,
       資料夾名稱長度上限: 資料夾名上限,
@@ -117,6 +146,40 @@ export default function 系統設定頁面() {
         <p className="text-sm text-muted-foreground mt-1">管理檔案系統的全域設定</p>
       </div>
 
+      {/* 系統名稱 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Type className="w-5 h-5" />系統名稱設定
+          </CardTitle>
+          <CardDescription>自訂顯示在歡迎橫幅與頁首的系統名稱</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label>系統名稱</Label>
+              <Input
+                value={系統名稱}
+                onChange={e => set系統名稱(e.target.value)}
+                placeholder="雲端檔案管理系統"
+              />
+            </div>
+            <div>
+              <Label>系統副標題（選填）</Label>
+              <Input
+                value={系統副標題}
+                onChange={e => set系統副標題(e.target.value)}
+                placeholder="企業文件管理平台"
+              />
+            </div>
+          </div>
+          <div className="bg-muted rounded-lg px-4 py-3 text-sm text-muted-foreground">
+            目前名稱：<span className="font-semibold text-foreground">{系統名稱 || "雲端檔案管理系統"}</span>
+            {系統副標題 && <span className="ml-2 opacity-70">・{系統副標題}</span>}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* General Settings */}
       <Card>
         <CardHeader>
@@ -138,6 +201,67 @@ export default function 系統設定頁面() {
               <Label>資料夾名稱長度上限</Label>
               <Input type="number" value={資料夾名上限} onChange={e => set資料夾名上限(Number(e.target.value))} />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 各組空間限制 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <HardDrive className="w-5 h-5" />各組別儲存空間限制
+          </CardTitle>
+          <CardDescription>設定各組別的最大儲存空間上限（MB），未設定則不限制</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            {各組空間.length === 0 && (
+              <p className="text-sm text-muted-foreground">尚未設定任何組別空間限制</p>
+            )}
+            {各組空間.sort((a, b) => a.組別.localeCompare(b.組別)).map((item) => (
+              <div key={item.組別} className="flex items-center gap-3 bg-muted rounded-lg px-3 py-2">
+                <Badge variant="outline" className="shrink-0">{item.組別}</Badge>
+                <span className="text-sm font-medium flex-1">
+                  {item.上限MB >= 1024
+                    ? `${(item.上限MB / 1024).toFixed(1)} GB`
+                    : `${item.上限MB} MB`}
+                </span>
+                <button onClick={() => 移除組空間(item.組別)} className="ml-auto">
+                  <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <Separator />
+          <div className="grid sm:grid-cols-4 gap-2 items-end">
+            <div>
+              <Label className="text-xs mb-1 block">組別</Label>
+              <Select value={新空間組別} onValueChange={set新空間組別}>
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇組別" />
+                </SelectTrigger>
+                <SelectContent>
+                  {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs mb-1 block">上限（MB）</Label>
+              <Input
+                type="number"
+                placeholder="例：1024"
+                value={新空間MB}
+                onChange={e => set新空間MB(e.target.value)}
+              />
+            </div>
+            <div className="text-xs text-muted-foreground pt-4">
+              {新空間MB && Number(新空間MB) >= 1024
+                ? `≈ ${(Number(新空間MB) / 1024).toFixed(1)} GB`
+                : ""}
+            </div>
+            <Button variant="outline" onClick={新增組空間}>
+              <Plus className="w-4 h-4 mr-1" />新增
+            </Button>
           </div>
         </CardContent>
       </Card>

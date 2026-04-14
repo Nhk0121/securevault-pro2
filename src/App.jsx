@@ -23,6 +23,7 @@ import 外包人員申請頁面 from '@/pages/外包人員申請頁面';
 import 使用者申請頁面 from '@/pages/使用者申請頁面';
 import 電話簿頁面 from '@/pages/電話簿頁面';
 import 管理員守衛 from '@/components/佈局/管理員守衛';
+import MonthlyThemeProvider from '@/components/佈局/月份主題提供者';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -83,10 +84,12 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
+        <MonthlyThemeProvider>
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </MonthlyThemeProvider>
       </QueryClientProvider>
     </AuthProvider>
   )

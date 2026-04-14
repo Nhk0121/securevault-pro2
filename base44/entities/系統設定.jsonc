@@ -1,0 +1,85 @@
+{
+  "name": "\u7cfb\u7d71\u8a2d\u5b9a",
+  "type": "object",
+  "properties": {
+    "\u8a2d\u5b9a\u540d\u7a31": {
+      "type": "string",
+      "description": "\u8a2d\u5b9a\u9805\u76ee\u540d\u7a31"
+    },
+    "\u7cfb\u7d71\u540d\u7a31": {
+      "type": "string",
+      "description": "\u7cfb\u7d71\u986f\u793a\u540d\u7a31\uff0c\u53ef\u81ea\u8a02",
+      "default": "\u96f2\u7aef\u6a94\u6848\u7ba1\u7406\u7cfb\u7d71"
+    },
+    "\u7cfb\u7d71\u526f\u6a19\u984c": {
+      "type": "string",
+      "description": "\u7cfb\u7d71\u526f\u6a19\u984c/\u8aaa\u660e\u6587\u5b57"
+    },
+    "\u5141\u8a31\u4e0a\u50b3\u57f7\u884c\u6a94IP": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u5141\u8a31\u4e0a\u50b3\u57f7\u884c\u6a94\u7684IP\u6e05\u55ae"
+    },
+    "\u7d44\u5225\u5be9\u6838\u4eba": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "\u7d44\u5225": {
+            "type": "string"
+          },
+          "\u5be9\u6838\u4eba\u4fe1\u7bb1": {
+            "type": "string"
+          },
+          "\u5be9\u6838\u4ebaIP": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "\u5404\u7d44\u5225\u6c38\u4e45\u5340\u5be9\u6838\u4eba\u5c0d\u61c9\u8a2d\u5b9a"
+    },
+    "\u5404\u7d44\u7a7a\u9593\u9650\u5236MB": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "\u7d44\u5225": {
+            "type": "string"
+          },
+          "\u4e0a\u9650MB": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "\u5404\u7d44\u5225\u5132\u5b58\u7a7a\u9593\u4e0a\u9650\uff08MB\uff09"
+    },
+    "\u6642\u6548\u5340\u5929\u6578": {
+      "type": "number",
+      "default": 30,
+      "description": "\u6642\u6548\u5340\u6a94\u6848\u4fdd\u7559\u5929\u6578"
+    },
+    "\u6a94\u6848\u540d\u7a31\u9577\u5ea6\u4e0a\u9650": {
+      "type": "number",
+      "default": 50
+    },
+    "\u8cc7\u6599\u593e\u540d\u7a31\u9577\u5ea6\u4e0a\u9650": {
+      "type": "number",
+      "default": 30
+    },
+    "\u7570\u5e38\u5075\u6e2c\u4e0b\u8f09\u6b21\u6578": {
+      "type": "number",
+      "default": 20,
+      "description": "\u77ed\u6642\u9593\u5167\u4e0b\u8f09\u8d85\u904e\u6b64\u6b21\u6578\u8996\u70ba\u7570\u5e38"
+    },
+    "\u7570\u5e38\u5075\u6e2c\u6642\u9593\u7bc4\u570d\u5206\u9418": {
+      "type": "number",
+      "default": 10,
+      "description": "\u7570\u5e38\u5075\u6e2c\u7684\u6642\u9593\u7bc4\u570d(\u5206\u9418)"
+    }
+  },
+  "required": [
+    "\u8a2d\u5b9a\u540d\u7a31"
+  ]
+}

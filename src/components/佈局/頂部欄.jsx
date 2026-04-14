@@ -6,12 +6,14 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuTrigger, DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Clock } from "lucide-react";
+import { User, LogOut, Clock, Palette } from "lucide-react";
 import moment from "moment";
+import { 取得當月主題 } from "@/lib/月份主題";
 
 export default function 頂部欄() {
   const [使用者, set使用者] = useState(null);
   const [現在時間, set現在時間] = useState(moment());
+  const 當月主題 = 取得當月主題();
 
   useEffect(() => {
     base44.auth.me().then(set使用者).catch(() => {});
@@ -33,6 +35,10 @@ export default function 頂部欄() {
             {現在時間.format("YYYY年MM月DD日 HH:mm:ss")}
           </span>
           <span className="text-xs opacity-70">（民國{現在時間.year() - 1911}年）</span>
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2.5 py-1.5 rounded-lg">
+          <Palette className="w-3.5 h-3.5" style={{ color: `hsl(${當月主題.primary})` }} />
+          <span>{當月主題.label}</span>
         </div>
       </div>
 
