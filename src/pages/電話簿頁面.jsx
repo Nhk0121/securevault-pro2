@@ -93,17 +93,23 @@ export default function 電話簿頁面() {
     return 關鍵字符合 && 組別符合 && 課別符合;
   });
 
+  // 依職稱排序（數字前綴越小職位越高）
+  const 依職稱排序 = (list) => [...list].sort((a, b) => {
+    const 取數字 = (u) => parseInt((u.職稱 || "99").split(".")[0]) || 99;
+    return 取數字(a) - 取數字(b);
+  });
+
   // 依組別分群
   const 依組別分群 = 篩選組別 !== "all"
-    ? { [篩選組別]: 篩選後 }
+    ? { [篩選組別]: 依職稱排序(篩選後) }
     : 組別列表.reduce((acc, g) => {
-        const 成員 = 篩選後.filter(u => u.所屬組別 === g);
+        const 成員 = 依職稱排序(篩選後.filter(u => u.所屬組別 === g));
         if (成員.length > 0) acc[g] = 成員;
         return acc;
       }, {});
 
   // 未分組成員
-  const 未分組 = 篩選後.filter(u => !u.所屬組別);
+  const 未分組 = 依職稱排序(篩選後.filter(u => !u.所屬組別));
 
   return (
     <div className="space-y-6">
