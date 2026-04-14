@@ -155,18 +155,20 @@ export default function 外包人員申請頁面() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>信箱</TableHead>
                   <TableHead>姓名</TableHead>
+                  <TableHead>手機號碼</TableHead>
                   <TableHead>所屬組別</TableHead>
+                  <TableHead>所屬課別</TableHead>
                   <TableHead>狀態</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {外包人員列表.map(u => (
                   <TableRow key={u.id}>
-                    <TableCell className="font-mono text-sm">{u.email}</TableCell>
                     <TableCell>{u.full_name || "—"}</TableCell>
+                    <TableCell className="font-mono text-sm">{u.手機號碼 || "—"}</TableCell>
                     <TableCell>{u.所屬組別 || "—"}</TableCell>
+                    <TableCell>{u.所屬課別 || "—"}</TableCell>
                     <TableCell>
                       <Badge className="bg-gray-100 text-gray-800">外包人員</Badge>
                     </TableCell>
