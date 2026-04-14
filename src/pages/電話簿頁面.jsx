@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, Search, User, Building2 } from "lucide-react";
 import { 組別列表 } from "@/lib/常數";
+import { base44 } from "@/api/base44Client";
 
 const 角色標籤 = {
   admin: { label: "管理員", class: "bg-red-100 text-red-800" },
@@ -62,10 +63,17 @@ function 聯絡卡({ 使用者 }) {
 export default function 電話簿頁面() {
   const [搜尋, set搜尋] = useState("");
   const [篩選組別, set篩選組別] = useState("all");
+  const [篩選課別, set篩選課別] = useState("all");
 
   const { data: 所有使用者 = [], isLoading } = useQuery({
     queryKey: ["電話簿-使用者"],
     queryFn: () => usersApi.list(),
+  });
+
+  const { data: 課別清單 = [] } = useQuery({
+    queryKey: ["電話簿-課別", 篩選組別],
+    queryFn: () => base44.entities.組課別設定.filter({ 組別: 篩選組別 }, "排序", 100),
+    enabled: 篩選組別 !== "all",
   });
 
   // 排除外包人員及停用帳號
@@ -80,7 +88,8 @@ export default function 電話簿頁面() {
       u.所屬組別?.includes(搜尋) ||
       u.所屬課別?.includes(搜尋);
     const 組別符合 = 篩選組別 === "all" || u.所屬組別 === 篩選組別;
-    return 關鍵字符合 && 組別符合;
+    const 課別符合 = 篩選課別 === "all" || u.所屬課別 === 篩選課別;
+    return 關鍵字符合 && 組別符合 && 課別符合;
   });
 
   // 依組別分群
@@ -111,19 +120,28 @@ export default function 電話簿頁面() {
         <div className="relative flex-1 min-w-52">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="搜尋姓名、分機、信箱..."
+            placeholder="搜尋姓名、分機、課別..."
             className="pl-9"
             value={搜尋}
             onChange={e => set搜尋(e.target.value)}
           />
         </div>
-        <Select value={篩選組別} onValueChange={set篩選組別}>
-          <SelectTrigger className="w-48">
+        <Select value={篩選組別} onValueChange={v => { set篩選組別(v); set篩選課別("all"); }}>
+          <SelectTrigger className="w-44">
             <SelectValue placeholder="全部組別" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部組別</SelectItem>
             {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={篩選課別} onValueChange={set篩選課別} disabled={篩選組別 === "all"}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="全部課別" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部課別</SelectItem>
+            {課別清單.map(k => <SelectItem key={k.id} value={k.課別名稱}>{k.課別名稱}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

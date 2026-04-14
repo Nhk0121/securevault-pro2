@@ -50,6 +50,7 @@ export default function 使用者管理頁面() {
   const [搜尋, set搜尋] = useState("");
   const [篩選角色, set篩選角色] = useState("all");
   const [篩選組別, set篩選組別] = useState("all");
+  const [篩選課別, set篩選課別] = useState("all");
   const [新增對話框, set新增對話框] = useState(false);
   const [新增表單, set新增表單] = useState(空表單);
   const [編輯使用者, set編輯使用者] = useState(null);
@@ -72,6 +73,12 @@ export default function 使用者管理頁面() {
     queryKey: ["組課別-編輯", 編輯表單.所屬組別],
     queryFn: () => base44.entities.組課別設定.filter({ 組別: 編輯表單.所屬組別 }, "排序", 100),
     enabled: !!編輯表單.所屬組別,
+  });
+
+  const { data: 課別清單篩選 = [] } = useQuery({
+    queryKey: ["組課別-篩選", 篩選組別],
+    queryFn: () => base44.entities.組課別設定.filter({ 組別: 篩選組別 }, "排序", 100),
+    enabled: 篩選組別 !== "all",
   });
 
   // ─── 新建使用者 ──────────────────────────────────────────────
@@ -136,9 +143,10 @@ export default function 使用者管理頁面() {
   };
 
   const 篩選後使用者 = 使用者列表.filter(u => {
-    if (搜尋 && !u.email?.includes(搜尋) && !u.full_name?.includes(搜尋) && !u.帳號?.includes(搜尋) && !u.姓名代號?.includes(搜尋)) return false;
+    if (搜尋 && !u.full_name?.includes(搜尋) && !u.帳號?.includes(搜尋) && !u.姓名代號?.includes(搜尋) && !u.所屬課別?.includes(搜尋)) return false;
     if (篩選角色 !== "all" && u.role !== 篩選角色) return false;
     if (篩選組別 !== "all" && u.所屬組別 !== 篩選組別) return false;
+    if (篩選課別 !== "all" && u.所屬課別 !== 篩選課別) return false;
     return true;
   });
 
@@ -160,7 +168,7 @@ export default function 使用者管理頁面() {
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <Input
-                placeholder="搜尋姓名、信箱、帳號..."
+                placeholder="搜尋姓名、帳號、課別..."
                 className="w-52 pl-8"
                 value={搜尋}
                 onChange={e => set搜尋(e.target.value)}
@@ -173,11 +181,18 @@ export default function 使用者管理頁面() {
                 {角色選項.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={篩選組別} onValueChange={set篩選組別}>
+            <Select value={篩選組別} onValueChange={v => { set篩選組別(v); set篩選課別("all"); }}>
               <SelectTrigger className="w-36"><SelectValue placeholder="組別" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部組別</SelectItem>
                 {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={篩選課別} onValueChange={set篩選課別} disabled={篩選組別 === "all"}>
+              <SelectTrigger className="w-32"><SelectValue placeholder="課別" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部課別</SelectItem>
+                {課別清單篩選.map(k => <SelectItem key={k.id} value={k.課別名稱}>{k.課別名稱}</SelectItem>)}
               </SelectContent>
             </Select>
             <Button onClick={() => { set新增表單(空表單); set新增對話框(true); }}>
@@ -191,10 +206,10 @@ export default function 使用者管理頁面() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>帳號 / 姓名</TableHead>
-                  <TableHead>信箱</TableHead>
-                  <TableHead>代號</TableHead>
-                  <TableHead>組別 / 課別</TableHead>
+                  <TableHead>帳號（員工編號）</TableHead>
+                  <TableHead>姓名</TableHead>
+                  <TableHead>組別</TableHead>
+                  <TableHead>課別</TableHead>
                   <TableHead>分機</TableHead>
                   <TableHead>角色</TableHead>
                   <TableHead>狀態</TableHead>
@@ -205,19 +220,12 @@ export default function 使用者管理頁面() {
                 {篩選後使用者.map(u => (
                   <TableRow key={u.id} className={u.停用 ? "opacity-50" : ""}>
                     <TableCell>
-                      <div>
-                        <p className="font-medium font-mono">{u.帳號}</p>
-                        <p className="text-xs text-muted-foreground">{u.full_name || "—"}</p>
-                      </div>
+                      <p className="font-medium font-mono">{u.帳號}</p>
+                      {u.姓名代號 && <p className="text-xs text-muted-foreground font-mono">{u.姓名代號}</p>}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{u.email}</TableCell>
-                    <TableCell className="font-mono">{u.姓名代號 || "—"}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <p>{u.所屬組別 || "—"}</p>
-                        {u.所屬課別 && <p className="text-muted-foreground text-xs">{u.所屬課別}</p>}
-                      </div>
-                    </TableCell>
+                    <TableCell className="text-sm">{u.full_name || "—"}</TableCell>
+                    <TableCell className="text-sm">{u.所屬組別 || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{u.所屬課別 || "—"}</TableCell>
                     <TableCell>{u.分機 || "—"}</TableCell>
                     <TableCell>
                       <Badge className={角色顏色[u.role] || 角色顏色.user}>
