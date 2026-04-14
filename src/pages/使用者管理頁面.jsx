@@ -260,20 +260,14 @@ export default function 使用者管理頁面() {
                 <Input value={新增表單.full_name} onChange={e => set新增表單(p => ({ ...p, full_name: e.target.value }))} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>電子信箱 <span className="text-destructive">*</span></Label>
-                <Input value={新增表單.email} onChange={e => set新增表單(p => ({ ...p, email: e.target.value }))} placeholder="email@company.com" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>角色</Label>
-                <Select value={新增表單.role} onValueChange={v => set新增表單(p => ({ ...p, role: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {角色選項.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-1.5">
+              <Label>角色</Label>
+              <Select value={新增表單.role} onValueChange={v => set新增表單(p => ({ ...p, role: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {角色選項.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -322,7 +316,7 @@ export default function 使用者管理頁面() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => set新增對話框(false)}>取消</Button>
-            <Button onClick={() => 建立使用者()} disabled={建立中 || !新增表單.帳號 || !新增表單.email}>
+            <Button onClick={() => 建立使用者()} disabled={建立中 || !新增表單.帳號}>
               {建立中 ? "建立中..." : "建立使用者"}
             </Button>
           </DialogFooter>
