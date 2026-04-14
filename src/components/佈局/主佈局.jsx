@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import 側邊欄 from "./側邊欄";
 import 頂部欄 from "./頂部欄";
+import 資安提醒對話框 from "./資安提醒對話框";
 import { cn } from "@/lib/utils";
 
 export default function 主佈局() {
@@ -10,6 +11,7 @@ export default function 主佈局() {
 
   return (
     <div className="min-h-screen bg-background">
+      <資安提醒對話框 />
       <側邊欄 已收合={側邊欄已收合} 切換收合={() => set側邊欄已收合(!側邊欄已收合)} />
       <div
         className={cn(
