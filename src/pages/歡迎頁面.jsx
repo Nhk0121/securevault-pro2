@@ -67,6 +67,11 @@ export default function 歡迎頁面() {
               立即登入
             </Button>
             <Button size="lg" variant="outline" className="gap-2 text-base px-8 border-white/20 text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/申請帳號'}>
+              <Users className="w-5 h-5" />
+              申請帳號
+            </Button>
+            <Button size="lg" variant="outline" className="gap-2 text-base px-8 border-white/20 text-white hover:bg-white/10"
               onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
               了解更多
             </Button>
