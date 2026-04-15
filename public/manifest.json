@@ -1,0 +1,16 @@
+{
+  "name": "雲端檔案管理系統",
+  "short_name": "檔案管理",
+  "description": "企業內部檔案管理系統",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
