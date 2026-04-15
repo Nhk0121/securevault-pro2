@@ -95,11 +95,6 @@ export function 需要變更密碼(user) {
     return user?.NeedChangePassword === true || user?.NeedChangePassword === 1;
 }
 
-// ── 向下相容別名（舊版命名） ──────────────────────────────
-export const 可操作永久區    = 可寫入永久區;
-export const 可讀取永久區舊  = 可讀取永久區;
-export const 可操作時效區寫入 = 可寫入時效區;
-
 /**
  * 是否可上傳執行檔（.exe/.bat 等）
  * 只有 admin 且 IP 在白名單內才允許（IP 白名單由後端控制，前端僅檢查角色）
@@ -107,3 +102,8 @@ export const 可操作時效區寫入 = 可寫入時效區;
 export function 可上傳執行檔(user) {
     return user?.role === 'admin';
 }
+
+// ── 向下相容別名（舊版命名） ──────────────────────────────
+export const 可操作永久區     = 可寫入永久區;
+export const 可讀取永久區舊   = 可讀取永久區;
+export const 可操作時效區寫入 = 可寫入時效區;
