@@ -28,7 +28,7 @@ const 限制卡 = ({ icon: Icon, text }) => (
 
 export default function 歡迎頁面() {
   const handleLogin = () => {
-    base44.auth.redirectToLogin(window.location.origin);
+    window.location.href = "/login";
   };
 
   return (
