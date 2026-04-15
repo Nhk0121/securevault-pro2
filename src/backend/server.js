@@ -32,8 +32,8 @@ app.use(morgan('combined'));
 const authRoutes     = require('./routes/auth');
 const userRoutes     = require('./routes/users');
 const folderRoutes   = require('./routes/folders');
-const fileRoutes     = require('./routes/files');
-const reviewRoutes   = require('./routes/reviews');
+const fileRoutes     = require('./routes/files');   // 含上傳/下載串流/審核
+const reviewRoutes   = require('./routes/reviews'); // 僅查詢待審清單
 const logRoutes      = require('./routes/logs');
 const settingRoutes  = require('./routes/settings');
 const groupRoutes    = require('./routes/groups');
@@ -46,6 +46,9 @@ app.use('/api/reviews',  reviewRoutes);
 app.use('/api/logs',     logRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/groups',   groupRoutes);
+
+// 注意：D:\Storage_NewFileSys 不提供靜態存取
+// 所有檔案下載一律走 GET /api/files/:id/download（JWT 驗證後串流）
 
 // ============================================================
 // 靜態檔案服務（前端打包後）

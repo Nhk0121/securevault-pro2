@@ -1,6 +1,6 @@
 /* eslint-disable */
 // ============================================================
-// 操作日誌路由
+// 操作日誌路由（資安稽核）
 // ============================================================
 
 const express = require('express');
@@ -9,9 +9,9 @@ const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/logs  →  取得操作日誌（管理員）
+// GET /api/logs  →  取得操作日誌（admin only）
 router.get('/', verifyToken, requireAdmin, async (req, res) => {
-    const { 操作類型, 操作者, 是否異常, limit = 200 } = req.query;
+    const { 操作類型, 操作者, 是否異常, limit = 500 } = req.query;
 
     const pool = await poolPromise;
     const request = pool.request();
@@ -41,9 +41,9 @@ router.get('/', verifyToken, requireAdmin, async (req, res) => {
     res.json({ success: true, data: result.recordset });
 });
 
-// POST /api/logs  →  記錄操作（內部使用）
+// POST /api/logs  →  前端記錄操作（預覽、編輯等）
 router.post('/', verifyToken, async (req, res) => {
-    const { 操作類型, 目標檔案, 目標檔案ID, 詳細內容, 所屬組別, 儲存區域, 是否異常, 異常原因 } = req.body;
+    const { 操作類型, 目標檔案, 目標檔案ID, 詳細內容, 所屬組別, 是否異常, 異常原因 } = req.body;
 
     const pool = await poolPromise;
     await pool.request()
@@ -54,12 +54,12 @@ router.post('/', verifyToken, async (req, res) => {
         .input('目標檔案ID', sql.UniqueIdentifier, 目標檔案ID || null)
         .input('詳細內容',   sql.NVarChar, 詳細內容 || null)
         .input('所屬組別',   sql.NVarChar, 所屬組別 || null)
-        .input('儲存區域',   sql.NVarChar, 儲存區域 || null)
         .input('是否異常',   sql.Bit, 是否異常 ? 1 : 0)
         .input('異常原因',   sql.NVarChar, 異常原因 || null)
-        .input('created_by', sql.NVarChar, req.user.email)
-        .query(`INSERT INTO dbo.操作日誌 (操作類型, 操作者, 操作者IP, 目標檔案, 目標檔案ID, 詳細內容, 所屬組別, 儲存區域, 是否異常, 異常原因, created_by)
-                VALUES (@操作類型, @操作者, @操作者IP, @目標檔案, @目標檔案ID, @詳細內容, @所屬組別, @儲存區域, @是否異常, @異常原因, @created_by)`);
+        .query(`INSERT INTO dbo.操作日誌
+                (操作類型, 操作者, 操作者IP, 目標檔案, 目標檔案ID, 詳細內容, 所屬組別, 是否異常, 異常原因)
+                VALUES
+                (@操作類型, @操作者, @操作者IP, @目標檔案, @目標檔案ID, @詳細內容, @所屬組別, @是否異常, @異常原因)`);
 
     res.status(201).json({ success: true, message: '日誌已記錄' });
 });
