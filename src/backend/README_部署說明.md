@@ -301,43 +301,73 @@ pause
 
 #### 4.5 web.config（放入 dist/ 資料夾）
 
+> ⚠️ 此 `web.config` 適用於「IIS 只負責靜態前端，/api 由 ARR 轉發至 Node.js」的架構。
+> HTTP→HTTPS 重導建議在 IIS 繫結層設定，或加入規則 0（見下方說明）。
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <system.webServer>
+
+    <!-- 讓 IIS 能處理 React Router 的前端路由 (SPA fallback) -->
     <rewrite>
       <rules>
-
-        <!-- 規則 1：強制 HTTP 轉 HTTPS -->
-        <rule name="HTTP轉HTTPS" stopProcessing="true">
-          <match url="(.*)" />
-          <conditions>
-            <add input="{HTTPS}" pattern="^OFF$" />
-          </conditions>
-          <action type="Redirect" url="https://{HTTP_HOST}/{R:1}" redirectType="Permanent" />
-        </rule>
-
-        <!-- 規則 2：/api/* 反向代理至 Node.js -->
-        <rule name="API反向代理" stopProcessing="true">
-          <match url="^api/(.*)" />
-          <action type="Rewrite" url="http://localhost:3001/api/{R:1}" />
-        </rule>
-
-        <!-- 規則 3：SPA React Router 支援 -->
-        <rule name="SPA路由支援" stopProcessing="true">
+        <rule name="SPA Fallback" stopProcessing="true">
           <match url=".*" />
           <conditions logicalGrouping="MatchAll">
+            <!-- 不是實體檔案 -->
             <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+            <!-- 不是實體目錄 -->
             <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+            <!-- 不是 /api 開頭的後端路由 -->
+            <add input="{REQUEST_URI}" pattern="^/api" negate="true" />
           </conditions>
           <action type="Rewrite" url="/index.html" />
         </rule>
-
       </rules>
     </rewrite>
+
+    <!-- 靜態檔案快取設定 -->
+    <staticContent>
+      <!-- JS/CSS 帶 hash 可長快取 -->
+      <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+      <!-- 確保各類型使用正確 MIME -->
+      <remove fileExtension=".js" />
+      <mimeMap fileExtension=".js" mimeType="application/javascript" />
+      <remove fileExtension=".mjs" />
+      <mimeMap fileExtension=".mjs" mimeType="application/javascript" />
+      <remove fileExtension=".json" />
+      <mimeMap fileExtension=".json" mimeType="application/json" />
+      <remove fileExtension=".wasm" />
+      <mimeMap fileExtension=".wasm" mimeType="application/wasm" />
+    </staticContent>
+
+    <!-- 壓縮 -->
+    <httpCompression>
+      <dynamicTypes>
+        <add mimeType="application/javascript" enabled="true" />
+        <add mimeType="application/json" enabled="true" />
+        <add mimeType="text/css" enabled="true" />
+      </dynamicTypes>
+    </httpCompression>
+
+    <!-- 安全標頭 -->
+    <httpProtocol>
+      <customHeaders>
+        <add name="X-Content-Type-Options" value="nosniff" />
+        <add name="X-Frame-Options" value="SAMEORIGIN" />
+        <add name="X-XSS-Protection" value="1; mode=block" />
+        <add name="Referrer-Policy" value="strict-origin-when-cross-origin" />
+      </customHeaders>
+    </httpProtocol>
+
   </system.webServer>
 </configuration>
 ```
+
+> **關於 HTTP→HTTPS 重導與 ARR 反向代理：**
+> - `/api/*` 反向代理至 `localhost:3001` 建議在 **IIS ARR 管理員** 中設定伺服器層級規則，或在網站層另建 `web.config` 覆寫規則，避免與上方 SPA Fallback 規則衝突。
+> - HTTP→HTTPS 強制重導建議在 IIS **繫結（Bindings）** 搭配「HTTP 重新導向」功能模組處理，更為穩定。
 
 ---
 
