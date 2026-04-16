@@ -114,25 +114,77 @@ pm2 startup
 pm2 save
 ```
 
-#### .env 範例
+#### 建立 .env 設定檔
+
+`backend/` 資料夾中需要建立兩個檔案：
+
+| 檔案 | 說明 | 是否上版本控制 |
+|------|------|--------------|
+| `.env.example` | 範本（欄位說明，無真實密碼） | ✅ 可以 |
+| `.env` | 實際設定（含密碼），由 `.env.example` 複製而來 | ❌ 不可以 |
+
+**Step 1：建立 `.env.example`（範本，放進 Git）**
+
+在 `backend/` 新增 `.env.example` 檔案，內容如下：
 
 ```env
-# 資料庫連線
+# 資料庫連線（SQL Server）
+# 若 SQL Server 在同一台機器填 localhost，具名執行個體填 HOSTNAME\SQLEXPRESS
 DB_SERVER=localhost
 DB_NAME=FileManagement
 DB_USER=sa
-DB_PASSWORD=your_strong_password
+DB_PASSWORD=請換成強密碼至少12字元
 DB_PORT=1433
 
-# JWT 金鑰（請換成複雜隨機字串）
-JWT_SECRET=請換成至少32字元的隨機字串例如abc123xyz789...
+# JWT 身份驗證金鑰
+# ⚠️ 一定要換掉！建議至少 32 字元的隨機字串
+# 產生方式（PowerShell）：
+#   -join ((65..90)+(97..122)+(48..57) | Get-Random -Count 48 | %{[char]$_})
+# 或 Node.js：require('crypto').randomBytes(32).toString('hex')
+JWT_SECRET=請換成至少32字元的隨機字串
 
 # 後端監聽埠號（僅供 IIS ARR 內部轉發，不對外開放）
+# ⚠️ 若改此數字，IIS web.config 的反向代理規則也要同步修改
 PORT=3001
 
-# 上傳檔案存放路徑（請確保目錄存在且有寫入權限）
+# 上傳檔案存放路徑
+# ⚠️ 結尾必須有反斜線 \
+# ⚠️ 必須先手動建立此資料夾
+# ⚠️ 執行 pm2 的 Windows 帳號必須對此路徑有讀寫權限
 UPLOAD_PATH=D:\FileStorage\uploads\
+
+# Token 有效期限（s=秒, m=分, h=小時, d=天）
+JWT_EXPIRES_IN=8h
+
+# 環境模式（正式部署填 production）
+NODE_ENV=production
 ```
+
+**Step 2：複製為 `.env` 並填入真實值**
+
+```bash
+cd backend
+copy .env.example .env
+notepad .env
+```
+
+**Step 3：確認 `.env` 不會被 Git 追蹤**
+
+在專案根目錄的 `.gitignore` 加入：
+
+```
+backend/.env
+```
+
+#### 填完 .env 後的檢查清單
+
+| 項目 | 確認方法 |
+|------|---------|
+| `DB_PASSWORD` 已換掉 | 目視確認不是預設值 |
+| `JWT_SECRET` 已換掉且夠長 | 至少 32 字元，含英數混合 |
+| `UPLOAD_PATH` 資料夾已建立 | `dir D:\FileStorage\uploads\` |
+| Node.js 帳號對 UPLOAD_PATH 有權限 | 右鍵資料夾 → 內容 → 安全性 |
+| `PORT=3001` 與 web.config 一致 | 比對 web.config 中 `localhost:3001` |
 
 #### 確認後端正常啟動
 
@@ -348,9 +400,57 @@ pm2 monit                         # 即時監控
 
 ---
 
+## 改版與移機說明
+
+### 哪些情況需要重新 `npm run build`？
+
+| 改動項目 | 是否需要重新 build | 生效方式 |
+|---------|-----------------|---------|
+| 前端程式碼（`.jsx`、`.js`、`.css`） | ✅ **需要** | `npm run build` → 複製 `dist/` |
+| `index.css` / `tailwind.config.js` | ✅ **需要** | 同上 |
+| `.env.production`（`VITE_API_BASE` 等） | ✅ **需要** | Vite build 時注入，改了必須重 build |
+| `backend/.env` | ❌ 不需要 | `pm2 restart file-management` |
+| `backend/server.js` 或路由檔案 | ❌ 不需要 | `pm2 restart file-management` |
+| IIS `web.config` | ❌ 不需要 | 直接修改 `dist/web.config`，IIS 自動生效 |
+| SQL Server 資料 / Schema | ❌ 不需要 | 在 SSMS 執行 SQL 即可 |
+
+> ⚠️ `VITE_API_BASE` 是 **build 時注入**的環境變數，不是 runtime 讀取。改了 `.env.production` 一定要重新 build 才會生效。
+
+---
+
+### 移機（換伺服器）流程
+
+若程式碼沒有異動，移機時 **不需要重新 build**：
+
+```bash
+# 1. 將以下資料夾複製到新伺服器
+#    - dist/         → 放至 IIS 網站實體路徑
+#    - backend/      → 放至新伺服器任意路徑（排除 node_modules/）
+
+# 2. 在新伺服器的 backend/ 重新安裝套件
+cd backend
+npm install
+
+# 3. 修改 .env（填入新伺服器的 DB 連線、路徑等）
+notepad .env
+
+# 4. 啟動後端
+pm2 start server.js --name file-management
+pm2 startup
+pm2 save
+
+# 5. 確認後端正常
+# 瀏覽器開啟 http://localhost:3001/api/health
+```
+
+> 若新舊伺服器的**網域或 API 路徑不同**，則需要修改 `.env.production` 並重新 build 前端。
+
+---
+
 ## 注意事項
 
 - `JWT_SECRET` 請設定為複雜的隨機字串，不要使用預設值
 - 資料庫密碼建議使用強密碼
 - Node.js（port 3001）**不可對外開放**，僅供 IIS ARR 內部轉發
 - 定期備份 MSSQL 資料庫與上傳檔案
+- `.env` 含有密碼，**絕對不可以上傳至 Git**，請確認 `.gitignore` 已設定
