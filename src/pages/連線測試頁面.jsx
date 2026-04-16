@@ -171,6 +171,11 @@ export default function ConnectionTestPage() {
           <p className="text-slate-400 text-sm">
             API：<code className="text-slate-300 bg-white/10 px-2 py-0.5 rounded">{API_BASE}</code>
           </p>
+          {!import.meta.env.VITE_API_BASE && (
+            <p className="text-amber-400 text-xs mt-1">
+              ⚠️ VITE_API_BASE 未設定，使用預設值。請建立 .env.local 或重新 build。
+            </p>
+          )}
         </div>
 
         <div className="space-y-3 mb-6">
