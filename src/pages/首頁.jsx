@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React from "react";
-import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import apiClient from "@/api/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FolderLock, Clock, Trash2, Shield, AlertTriangle, TrendingUp
@@ -59,12 +59,12 @@ export default function 首頁() {
 
   const { data: 所有檔案 = [] } = useQuery({
     queryKey: ["首頁-檔案"],
-    queryFn: () => base44.entities.檔案.list("-created_date", 500),
+    queryFn: () => apiClient.entities.檔案.list("-created_date", 500),
   });
 
   const { data: 最近日誌 = [] } = useQuery({
     queryKey: ["首頁-日誌"],
-    queryFn: () => base44.entities.操作日誌.list("-created_date", 50),
+    queryFn: () => apiClient.entities.操作日誌.list("-created_date", 50),
   });
 
   const 永久區數 = 所有檔案.filter(f => f.儲存區域 === "永久區" && !f.已刪除).length;
