@@ -141,7 +141,24 @@ http://localhost:3001/api/health
 
 ---
 
-### 第三步：前端打包
+### 第三步：前端環境變數與打包
+
+#### 設定 API 連線環境變數（build 前必做）
+
+在**專案根目錄**建立 `.env.production` 檔案，內容擇一填入：
+
+```env
+# 方案 A（建議）：IIS ARR 反向代理，前端與 API 同源
+VITE_API_BASE=/api
+
+# 方案 B：直接指定後端 IP（不用反向代理）
+# VITE_API_BASE=http://192.168.1.100:3001/api
+
+# 方案 C：有網域且啟用 HTTPS
+# VITE_API_BASE=https://files.company.com/api
+```
+
+> ⚠️ `VITE_API_BASE` 是 **build 時注入**的，修改後必須重新 build 才會生效。
 
 ```bash
 # 在專案根目錄執行
