@@ -46,7 +46,7 @@ function 結果卡({ icon: Icon, title, status, detail, ms }) {
   );
 }
 
-export default function 連線測試頁面() {
+export default function ConnectionTestPage() {
   const [items, setItems] = useState({
     api:   { status: 狀態.等待, detail: null, ms: null },
     db:    { status: 狀態.等待, detail: null, ms: null },
