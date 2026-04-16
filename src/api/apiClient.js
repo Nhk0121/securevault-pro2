@@ -48,20 +48,20 @@ const del  = (path)        => request("DELETE", path);
 // ─── 認證 API ─────────────────────────────────────────────────
 export const auth = {
   /** 登入：回傳 { token, 使用者 } */
-  login: (帳號, 密碼) => post("/認證/登入", { 帳號, 密碼 }),
+  login: (帳號, 密碼) => post("/auth/login", { email: 帳號, password: 密碼 }),
 
   /** 取得目前登入使用者資料 */
-  me: () => get("/認證/目前使用者"),
+  me: () => get("/auth/me"),
 
   /** 更新自己的基本資料 */
-  updateMe: (data) => put("/認證/目前使用者", data),
+  updateMe: (data) => put("/auth/me", data),
 
   /** 自行變更密碼 */
   changePassword: ({ currentPassword, newPassword }) =>
-    post("/認證/變更密碼", { 目前密碼: currentPassword, 新密碼: newPassword }),
+    post("/auth/change-password", { currentPassword, newPassword }),
 
   /** 管理員重置指定使用者密碼 */
-  resetPassword: (userId) => post(`/認證/重置密碼/${userId}`),
+  resetPassword: (userId) => post(`/users/${userId}/reset-password`),
 
   /** 登出（清除 token 並跳轉登入頁） */
   logout: () => { removeToken(); window.location.href = "/login"; },
