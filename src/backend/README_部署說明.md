@@ -7,8 +7,27 @@
 | 作業系統 | Windows Server 2019 |
 | 資料庫 | SQL Server 2019+ |
 | Node.js | v18.0.0 以上 |
-| IIS | 10.0（用於前端靜態檔案） |
+| IIS | 10.0（前端靜態檔案 + ARR 反向代理） |
 | PM2 | 最新版（Node.js 程序管理） |
+| IIS ARR | Application Request Routing（反向代理） |
+| URL Rewrite | IIS URL Rewrite 模組 |
+
+---
+
+## 整體架構說明
+
+```
+使用者瀏覽器
+     │  HTTPS 443
+     ▼
+   IIS 10.0
+   ├─ 前端靜態檔案（dist/）      → 直接提供
+   └─ /api/* 路徑                → ARR 反向代理 → Node.js :3001（僅內網）
+```
+
+- **對外只開放 443（HTTPS）**，不對外開放 3001
+- Node.js API 監聽 `localhost:3001`，僅供 IIS ARR 轉發
+- SSL 憑證統一由 IIS 管理
 
 ---
 
@@ -108,16 +127,16 @@ DB_PORT=1433
 # JWT 金鑰（請換成複雜隨機字串）
 JWT_SECRET=請換成至少32字元的隨機字串例如abc123xyz789...
 
-# 後端監聽埠號
+# 後端監聽埠號（僅供 IIS ARR 內部轉發，不對外開放）
 PORT=3001
 
 # 上傳檔案存放路徑（請確保目錄存在且有寫入權限）
 UPLOAD_PATH=D:\FileStorage\uploads\
 ```
 
-#### 確認資料庫連線正常
+#### 確認後端正常啟動
 
-啟動後端後，瀏覽器開啟（視 PORT 而定）：
+後端啟動後，在**伺服器本機**瀏覽器開啟（localhost 確認用）：
 
 ```
 http://localhost:3001/api/health
@@ -139,26 +158,27 @@ http://localhost:3001/api/health
 > });
 > ```
 
+外部可透過 HTTPS 驗證（ARR 設定完成後）：
+
+```
+https://your-domain.com/api/health
+```
+
 ---
 
 ### 第三步：前端環境變數與打包
 
 #### 設定 API 連線環境變數（build 前必做）
 
-在**專案根目錄**建立 `.env.production` 檔案，內容擇一填入：
+在**專案根目錄**建立 `.env.production` 檔案：
 
 ```env
-# 方案 A（建議）：IIS ARR 反向代理，前端與 API 同源
+# 使用 IIS ARR 反向代理（同源 HTTPS，前端與 API 同網域）
 VITE_API_BASE=/api
-
-# 方案 B：直接指定後端 IP（不用反向代理）
-# VITE_API_BASE=http://192.168.1.100:3001/api
-
-# 方案 C：有網域且啟用 HTTPS
-# VITE_API_BASE=https://files.company.com/api
 ```
 
 > ⚠️ `VITE_API_BASE` 是 **build 時注入**的，修改後必須重新 build 才會生效。
+> 使用 `/api` 同源路徑，讓瀏覽器自動走 HTTPS 443，不需額外指定 IP 或 port。
 
 ```bash
 # 在專案根目錄執行
@@ -167,9 +187,9 @@ npm run build
 # 打包結果在 dist/ 資料夾
 ```
 
-#### 手動補入必要設定檔（建議建立 deploy.bat）
+#### 快速部署腳本（建議建立 deploy.bat）
 
-Vite 打包不會自動複製 `web.config` 和 `manifest.json`，需手動放入 `dist/`：
+Vite 打包不會自動複製 `web.config`，需手動放入 `dist/`：
 
 ```bat
 @echo off
@@ -190,13 +210,39 @@ pause
 
 ---
 
-### 第四步：IIS 設定（前端）
+### 第四步：IIS 設定（前端 + HTTPS + ARR 反向代理）
 
-1. 開啟 **IIS 管理員**
-2. 新增網站，實體路徑指向 `dist/` 資料夾
-3. 設定繫結（Binding）：埠號建議 `80` 或 `443`（HTTPS）
-4. 安裝 **URL Rewrite 模組**（支援 React Router）
-5. 在 `dist/` 資料夾新增 `web.config`：
+#### 4.1 安裝必要模組
+
+- [URL Rewrite 模組](https://www.iis.net/downloads/microsoft/url-rewrite)
+- [Application Request Routing (ARR)](https://www.iis.net/downloads/microsoft/application-request-routing)
+
+#### 4.2 啟用 ARR Proxy
+
+1. 開啟 **IIS 管理員** → 點選伺服器節點
+2. 雙擊 **Application Request Routing Cache**
+3. 右側點選 **Server Proxy Settings**
+4. 勾選 **Enable proxy** → 套用
+
+#### 4.3 設定 HTTPS 繫結（443）
+
+1. IIS 管理員 → 新增或選擇現有網站
+2. 實體路徑指向 `dist/` 資料夾
+3. 設定繫結（Bindings）：
+   - 類型：`https`
+   - 埠號：`443`
+   - SSL 憑證：選擇已匯入的憑證
+
+> 若使用自簽憑證（內網測試），可用 IIS 自建：伺服器憑證 → 建立自我簽署憑證
+
+#### 4.4 強制 HTTP → HTTPS 重新導向
+
+在網站繫結中同時加入：
+- 類型：`http`、埠號：`80`
+
+然後在 `web.config` 加入 80→443 重導規則（見下方 web.config）。
+
+#### 4.5 web.config（放入 dist/ 資料夾）
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -204,6 +250,23 @@ pause
   <system.webServer>
     <rewrite>
       <rules>
+
+        <!-- 規則 1：強制 HTTP 轉 HTTPS -->
+        <rule name="HTTP轉HTTPS" stopProcessing="true">
+          <match url="(.*)" />
+          <conditions>
+            <add input="{HTTPS}" pattern="^OFF$" />
+          </conditions>
+          <action type="Redirect" url="https://{HTTP_HOST}/{R:1}" redirectType="Permanent" />
+        </rule>
+
+        <!-- 規則 2：/api/* 反向代理至 Node.js -->
+        <rule name="API反向代理" stopProcessing="true">
+          <match url="^api/(.*)" />
+          <action type="Rewrite" url="http://localhost:3001/api/{R:1}" />
+        </rule>
+
+        <!-- 規則 3：SPA React Router 支援 -->
         <rule name="SPA路由支援" stopProcessing="true">
           <match url=".*" />
           <conditions logicalGrouping="MatchAll">
@@ -212,6 +275,7 @@ pause
           </conditions>
           <action type="Rewrite" url="/index.html" />
         </rule>
+
       </rules>
     </rewrite>
   </system.webServer>
@@ -220,30 +284,25 @@ pause
 
 ---
 
-### 第五步：前端 API 連線設定
+### 第五步：防火牆設定
 
-修改前端的 `api/apiClient.js`，將 Base URL 改為本機 API 伺服器：
+| 埠號 | 用途 | 方向 | 說明 |
+|------|------|------|------|
+| 443 | IIS HTTPS 前端 + API | 入站 | **對外開放** |
+| 80 | HTTP（自動導向 443） | 入站 | 對外開放（重導用） |
+| 3001 | Node.js API | 本機 | **僅允許 localhost，不對外** |
+| 1433 | MSSQL | 本機 | 僅允許本機連線 |
 
-```javascript
-// 範例：同主機不同埠號
-const API_BASE_URL = 'http://localhost:3001/api';
+```powershell
+# 開放 443（PowerShell 執行）
+New-NetFirewallRule -DisplayName "HTTPS 443" -Direction Inbound -Protocol TCP -LocalPort 443 -Action Allow
 
-// 範例：區網 IP
-const API_BASE_URL = 'http://192.168.1.100:3001/api';
+# 開放 80（重導用）
+New-NetFirewallRule -DisplayName "HTTP 80" -Direction Inbound -Protocol TCP -LocalPort 80 -Action Allow
 
-// 範例：有對應網域名稱
-const API_BASE_URL = 'https://files.company.com/api';
+# 確認 3001 未對外開放（預設即封鎖，確認一下）
+# 不需要新增 3001 入站規則
 ```
-
----
-
-### 第六步：防火牆設定
-
-| 埠號 | 用途 | 方向 |
-|------|------|------|
-| 80 / 443 | IIS 前端網站 | 入站 |
-| 3001 | Node.js API（建議僅允許內網） | 入站 |
-| 1433 | MSSQL（建議僅允許本機） | 本機 |
 
 ---
 
@@ -278,11 +337,13 @@ pm2 monit                         # 即時監控
 
 | 症狀 | 可能原因 | 解決方式 |
 |------|---------|---------|
-| 登入後一直轉圈 | API Base URL 設定錯誤 | 檢查 `apiClient.js` 的 URL |
+| 登入後一直轉圈 | `.env.production` 未設定或 build 前未建立 | 確認 `VITE_API_BASE=/api` 並重新 build |
+| `/api/*` 回傳 404 | ARR 反向代理未啟用或 web.config 設定錯誤 | 確認 ARR Proxy 已啟用、規則順序正確 |
+| 瀏覽器顯示「不安全」 | SSL 憑證未匯入或繫結未選憑證 | IIS 繫結確認選擇正確憑證 |
+| HTTP 未自動跳 HTTPS | web.config 缺少重導規則 | 確認規則 1（HTTP轉HTTPS）已加入 |
 | `NeedChangePassword` 欄位錯誤 | 舊版 schema 缺少欄位 | 執行第一步的補丁 SQL |
 | 上傳失敗 | UPLOAD_PATH 目錄無寫入權限 | 確認 Node.js 執行帳號有該目錄存取權 |
 | IIS 顯示 404 | 未安裝 URL Rewrite 或缺少 web.config | 安裝 URL Rewrite 模組並確認 web.config 存在 |
-| `/api/health` 無回應 | 後端未啟動或 PORT 被佔用 | 執行 `pm2 logs` 確認錯誤訊息 |
 | 重開機後後端停止 | PM2 未設定開機自啟 | 執行 `pm2 startup` 和 `pm2 save` |
 
 ---
@@ -291,5 +352,5 @@ pm2 monit                         # 即時監控
 
 - `JWT_SECRET` 請設定為複雜的隨機字串，不要使用預設值
 - 資料庫密碼建議使用強密碼
-- 建議啟用 HTTPS（SSL 憑證）
+- Node.js（port 3001）**不可對外開放**，僅供 IIS ARR 內部轉發
 - 定期備份 MSSQL 資料庫與上傳檔案
