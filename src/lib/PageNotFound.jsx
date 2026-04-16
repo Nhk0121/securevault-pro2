@@ -47,9 +47,9 @@ export default function PageNotFound({}) {
                                     <div className="w-2 h-2 rounded-full bg-orange-400"></div>
                                 </div>
                                 <div className="text-left space-y-1">
-                                    <p className="text-sm font-medium text-slate-700">Admin Note</p>
+                                    <p className="text-sm font-medium text-slate-700">管理員提示</p>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        This could mean that the AI hasn't implemented this page yet. Ask it to implement it in the chat.
+                                        此頁面路徑不存在，請確認路由設定是否正確。
                                     </p>
                                 </div>
                             </div>
