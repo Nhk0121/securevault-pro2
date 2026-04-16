@@ -107,7 +107,7 @@ notepad .env
 npm install -g pm2
 
 # 6. 以 PM2 啟動伺服器
-pm2 start server.js --name file-management
+pm2 start server.js --name filemanagement
 
 # 7. 設定 PM2 開機自動啟動
 pm2 startup
@@ -158,6 +158,11 @@ JWT_EXPIRES_IN=8h
 
 # 環境模式（正式部署填 production）
 NODE_ENV=production
+
+# 允許的前端來源（CORS）
+# 若前端透過 IIS HTTPS 443 存取，填 https://your-domain.com 或 https://localhost
+# 多個來源用逗號分隔，例如：https://localhost,https://10.205.3.52
+FRONTEND_URL=https://localhost
 ```
 
 **Step 2：複製為 `.env` 並填入真實值**
@@ -377,9 +382,9 @@ D:\FileStorage\uploads\
 
 ```bash
 pm2 list                          # 查看執行中的程序
-pm2 logs file-management          # 查看日誌
-pm2 restart file-management       # 重新啟動
-pm2 stop file-management          # 停止
+pm2 logs filemanagement           # 查看日誌
+pm2 restart filemanagement        # 重新啟動
+pm2 stop filemanagement           # 停止
 pm2 monit                         # 即時監控
 ```
 
@@ -435,7 +440,7 @@ npm install
 notepad .env
 
 # 4. 啟動後端
-pm2 start server.js --name file-management
+pm2 start server.js --name filemanagement
 pm2 startup
 pm2 save
 
