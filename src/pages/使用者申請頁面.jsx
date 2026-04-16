@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HardDrive, CheckCircle2, UserPlus, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { 組別列表, 職稱列表 } from "@/lib/常數";
+import { 組別列表, 職稱列表, 組別課別對應 } from "@/lib/常數";
 
 const 表單類型 = ["employee", "contractor"];
 
@@ -30,6 +30,9 @@ export default function 使用者申請頁面() {
 
   const 更新員工欄位 = (欄位, 值) => set員工表單(p => ({ ...p, [欄位]: 值 }));
   const 更新外包欄位 = (欄位, 值) => set外包表單(p => ({ ...p, [欄位]: 值 }));
+
+  const 員工課別列表 = 組別課別對應[員工表單.所屬組別] || [];
+  const 外包課別列表 = 組別課別對應[外包表單.所屬組別] || [];
 
   const 送出申請 = async (e) => {
     e.preventDefault();
@@ -189,21 +192,30 @@ export default function 使用者申請頁面() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label>所屬組別 <span className="text-destructive">*</span></Label>
-                    <Select value={員工表單.所屬組別} onValueChange={v => 更新員工欄位("所屬組別", v)}>
-                      <SelectTrigger><SelectValue placeholder="選擇組別" /></SelectTrigger>
-                      <SelectContent>
-                        {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                   <Label>所屬組別 <span className="text-destructive">*</span></Label>
+                   <Select value={員工表單.所屬組別} onValueChange={v => set員工表單(p => ({ ...p, 所屬組別: v, 所屬課別: "" }))}>
+                     <SelectTrigger><SelectValue placeholder="選擇組別" /></SelectTrigger>
+                     <SelectContent>
+                       {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                     </SelectContent>
+                   </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label>所屬課別</Label>
-                    <Input
-                      placeholder="課別名稱（選填）"
-                      value={員工表單.所屬課別}
-                      onChange={e => 更新員工欄位("所屬課別", e.target.value)}
-                    />
+                   <Label>所屬課別</Label>
+                   {員工課別列表.length > 0 ? (
+                     <Select value={員工表單.所屬課別} onValueChange={v => 更新員工欄位("所屬課別", v)}>
+                       <SelectTrigger><SelectValue placeholder="選擇課別（選填）" /></SelectTrigger>
+                       <SelectContent>
+                         {員工課別列表.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                       </SelectContent>
+                     </Select>
+                   ) : (
+                     <Input
+                       placeholder={員工表單.所屬組別 ? "該組別無課別" : "請先選擇組別"}
+                       disabled
+                       value=""
+                     />
+                   )}
                   </div>
                 </div>
 
@@ -260,21 +272,30 @@ export default function 使用者申請頁面() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label>所屬組別 <span className="text-destructive">*</span></Label>
-                    <Select value={外包表單.所屬組別} onValueChange={v => 更新外包欄位("所屬組別", v)}>
-                      <SelectTrigger><SelectValue placeholder="選擇組別" /></SelectTrigger>
-                      <SelectContent>
-                        {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                   <Label>所屬組別 <span className="text-destructive">*</span></Label>
+                   <Select value={外包表單.所屬組別} onValueChange={v => set外包表單(p => ({ ...p, 所屬組別: v, 所屬課別: "" }))}>
+                     <SelectTrigger><SelectValue placeholder="選擇組別" /></SelectTrigger>
+                     <SelectContent>
+                       {組別列表.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                     </SelectContent>
+                   </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label>所屬課別</Label>
-                    <Input
-                      placeholder="課別名稱（選填）"
-                      value={外包表單.所屬課別}
-                      onChange={e => 更新外包欄位("所屬課別", e.target.value)}
-                    />
+                   <Label>所屬課別</Label>
+                   {外包課別列表.length > 0 ? (
+                     <Select value={外包表單.所屬課別} onValueChange={v => 更新外包欄位("所屬課別", v)}>
+                       <SelectTrigger><SelectValue placeholder="選擇課別（選填）" /></SelectTrigger>
+                       <SelectContent>
+                         {外包課別列表.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                       </SelectContent>
+                     </Select>
+                   ) : (
+                     <Input
+                       placeholder={外包表單.所屬組別 ? "該組別無課別" : "請先選擇組別"}
+                       disabled
+                       value=""
+                     />
+                   )}
                   </div>
                 </div>
 
