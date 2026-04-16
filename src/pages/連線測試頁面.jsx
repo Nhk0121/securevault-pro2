@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, Loader2, RefreshCw, Wifi, Database, Shield, Serve
 import { Button } from "@/components/ui/button";
 import { getToken } from "@/api/apiClient";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001/api";
 
 const 狀態 = { 等待: "idle", 測試中: "loading", 成功: "success", 失敗: "error" };
 
@@ -115,7 +115,7 @@ export default function ConnectionTestPage() {
       });
     } else {
       try {
-        const res = await fetch(`${API_BASE}/認證/目前使用者`, {
+        const res = await fetch(`${API_BASE}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const ms = Date.now() - t2;
