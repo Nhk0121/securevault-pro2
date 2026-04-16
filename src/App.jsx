@@ -47,6 +47,8 @@ const AuthenticatedApp = () => {
         <Routes>
           <Route path="/login" element={<登入頁面 />} />
           <Route path="/歡迎" element={<歡迎頁面 />} />
+          <Route path="/申請帳號" element={<使用者申請頁面 />} />
+          <Route path="/連線測試" element={<連線測試頁面 />} />
           <Route path="*" element={<歡迎頁面 />} />
         </Routes>
       );
