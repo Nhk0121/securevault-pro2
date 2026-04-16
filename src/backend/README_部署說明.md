@@ -22,6 +22,51 @@
 4. 執行全部 SQL 腳本
 5. 確認 `FileManagement` 資料庫已建立成功
 
+#### 建立第一個管理員帳號
+
+資料庫建立後需手動插入第一個 admin 帳號（之後可透過使用者管理頁面新增其他人）。
+
+**Step 1：在本機用 Node.js 產生密碼雜湊**
+
+```bash
+node -e "const b=require('bcrypt');b.hash('your_password',12).then(h=>console.log(h))"
+```
+
+> 將 `your_password` 換成真實密碼，執行後複製輸出的 `$2b$12$...` 字串
+
+**Step 2：在 SSMS 執行以下 SQL**
+
+```sql
+USE FileManagement;
+INSERT INTO dbo.使用者
+    (id, UserID, email, full_name, 密碼雜湊, role, TitleLevel, 所屬組別, SortOrder, 是否啟用, NeedChangePassword)
+VALUES
+    (NEWID(),
+     'A00001',                          -- 登入帳號（6碼員工編號）
+     'admin@company.com',               -- Email
+     '系統管理員',                       -- 顯示名稱
+     '$2b$12$<貼上剛才產生的hash>',      -- 密碼雜湊
+     'admin',                           -- 角色：admin
+     '00',                              -- TitleLevel
+     '00.處長室',                        -- 所屬組別
+     1,                                 -- SortOrder
+     1,                                 -- 是否啟用
+     0);                                -- NeedChangePassword
+```
+
+#### 確認 NeedChangePassword 欄位存在
+
+若 schema 為舊版，可能缺少此欄位，請執行補丁：
+
+```sql
+USE FileManagement;
+IF NOT EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID('dbo.使用者') AND name = 'NeedChangePassword'
+)
+    ALTER TABLE dbo.使用者 ADD NeedChangePassword BIT NOT NULL DEFAULT 0;
+```
+
 ---
 
 ### 第二步：後端 API 伺服器
@@ -50,6 +95,50 @@ pm2 startup
 pm2 save
 ```
 
+#### .env 範例
+
+```env
+# 資料庫連線
+DB_SERVER=localhost
+DB_NAME=FileManagement
+DB_USER=sa
+DB_PASSWORD=your_strong_password
+DB_PORT=1433
+
+# JWT 金鑰（請換成複雜隨機字串）
+JWT_SECRET=請換成至少32字元的隨機字串例如abc123xyz789...
+
+# 後端監聽埠號
+PORT=3001
+
+# 上傳檔案存放路徑（請確保目錄存在且有寫入權限）
+UPLOAD_PATH=D:\FileStorage\uploads\
+```
+
+#### 確認資料庫連線正常
+
+啟動後端後，瀏覽器開啟（視 PORT 而定）：
+
+```
+http://localhost:3001/api/health
+```
+
+若回傳如下 JSON，代表後端與資料庫均正常：
+
+```json
+{ "ok": true, "db_time": "2026-04-16T08:00:00.000Z" }
+```
+
+> 若要加入此端點，在 `server.js` 加上：
+> ```js
+> app.get('/api/health', async (req, res) => {
+>   const { poolPromise } = require('./db');
+>   const pool = await poolPromise;
+>   const result = await pool.request().query('SELECT GETDATE() AS now');
+>   res.json({ ok: true, db_time: result.recordset[0].now });
+> });
+> ```
+
 ---
 
 ### 第三步：前端打包
@@ -59,6 +148,27 @@ pm2 save
 npm install
 npm run build
 # 打包結果在 dist/ 資料夾
+```
+
+#### 手動補入必要設定檔（建議建立 deploy.bat）
+
+Vite 打包不會自動複製 `web.config` 和 `manifest.json`，需手動放入 `dist/`：
+
+```bat
+@echo off
+REM deploy.bat - 放在專案根目錄
+
+echo [1/3] 打包前端...
+call npm run build
+
+echo [2/3] 複製 web.config...
+copy /Y web.config dist\web.config
+
+echo [3/3] 複製 manifest.json...
+copy /Y public\manifest.json dist\manifest.json
+
+echo 完成！請將 dist\ 資料夾內容複製到 IIS 網站實體路徑。
+pause
 ```
 
 ---
@@ -98,8 +208,14 @@ npm run build
 修改前端的 `api/apiClient.js`，將 Base URL 改為本機 API 伺服器：
 
 ```javascript
+// 範例：同主機不同埠號
 const API_BASE_URL = 'http://localhost:3001/api';
-// 或使用實際 IP：http://192.168.x.x:3001/api
+
+// 範例：區網 IP
+const API_BASE_URL = 'http://192.168.1.100:3001/api';
+
+// 範例：有對應網域名稱
+const API_BASE_URL = 'https://files.company.com/api';
 ```
 
 ---
@@ -138,6 +254,19 @@ pm2 restart file-management       # 重新啟動
 pm2 stop file-management          # 停止
 pm2 monit                         # 即時監控
 ```
+
+---
+
+## 常見問題排查
+
+| 症狀 | 可能原因 | 解決方式 |
+|------|---------|---------|
+| 登入後一直轉圈 | API Base URL 設定錯誤 | 檢查 `apiClient.js` 的 URL |
+| `NeedChangePassword` 欄位錯誤 | 舊版 schema 缺少欄位 | 執行第一步的補丁 SQL |
+| 上傳失敗 | UPLOAD_PATH 目錄無寫入權限 | 確認 Node.js 執行帳號有該目錄存取權 |
+| IIS 顯示 404 | 未安裝 URL Rewrite 或缺少 web.config | 安裝 URL Rewrite 模組並確認 web.config 存在 |
+| `/api/health` 無回應 | 後端未啟動或 PORT 被佔用 | 執行 `pm2 logs` 確認錯誤訊息 |
+| 重開機後後端停止 | PM2 未設定開機自啟 | 執行 `pm2 startup` 和 `pm2 save` |
 
 ---
 
