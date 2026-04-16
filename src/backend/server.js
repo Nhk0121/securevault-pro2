@@ -51,11 +51,22 @@ app.use('/api/groups',   groupRoutes);
 // 所有檔案下載一律走 GET /api/files/:id/download（JWT 驗證後串流）
 
 // ============================================================
-// 靜態檔案服務（前端打包後）
+// Health Check
 // ============================================================
-app.use(express.static(path.join(__dirname, '../dist')));
+app.get('/api/health', async (req, res) => {
+    const { poolPromise } = require('./db');
+    const pool = await poolPromise;
+    const result = await pool.request().query('SELECT GETDATE() AS now');
+    res.json({ ok: true, db_time: result.recordset[0].now });
+});
+
+// ============================================================
+// 靜態檔案服務（前端打包後）
+// backend 在 src/backend/，dist 在專案根目錄，需往上兩層
+// ============================================================
+app.use(express.static(path.join(__dirname, '../../dist')));
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+    res.sendFile(path.join(__dirname, '../../dist/index.html'));
 });
 
 // ============================================================
