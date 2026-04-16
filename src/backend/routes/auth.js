@@ -15,15 +15,15 @@ const router = express.Router();
 // POST /api/auth/login
 // -------------------------------------------------------
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body;  // email 欄位實際傳的是 UserID（員工6碼或外包10碼手機）
     if (!email || !password) {
         return res.status(400).json({ success: false, message: '請輸入帳號與密碼' });
     }
 
     const pool = await poolPromise;
     const result = await pool.request()
-        .input('email', sql.NVarChar, email)
-        .query(`SELECT * FROM dbo.使用者 WHERE email = @email AND 是否啟用 = 1`);
+        .input('userID', sql.NVarChar, email)
+        .query(`SELECT * FROM dbo.使用者 WHERE UserID = @userID AND 是否啟用 = 1`);
 
     const user = result.recordset[0];
     if (!user) {

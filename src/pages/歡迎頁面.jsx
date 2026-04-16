@@ -107,7 +107,7 @@ export default function 歡迎頁面() {
             <p className="text-slate-400 text-sm">請詳閱以下規範，確保合規使用</p>
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
-            <限制卡 icon={AlertTriangle} text="外包人員僅能瀏覽「15.檔案下載」組別之公開資料，無法存取其他組別。" />
+            <限制卡 icon={AlertTriangle} text="外包人員僅能使用時效區，可上傳及下載檔案，無法刪除檔案，亦無法存取永久區。" />
             <限制卡 icon={AlertTriangle} text="執行檔（.exe、.bat 等）上傳受到 IP 白名單限制，非授權 IP 將被拒絕。" />
             <限制卡 icon={AlertTriangle} text="時效區檔案保留期限預設30天，到期後將提示管理員處理，請勿用於永久保存。" />
             <限制卡 icon={AlertTriangle} text="永久區檔案需經組別審核人員審核通過，審核前其他人員無法下載。" />

@@ -67,12 +67,12 @@ export function 可審核(user, 目標組別) {
 }
 
 /**
- * 是否可操作時效區（上傳/刪除）
- *   contractor → 不可寫入，只能下載
+ * 是否可上傳時效區
+ *   contractor → 可上傳，但不可刪除
  */
 export function 可寫入時效區(user) {
     if (!user) return false;
-    return user.role !== 'contractor';
+    return true;  // 所有角色（含外包）均可上傳時效區
 }
 
 /**

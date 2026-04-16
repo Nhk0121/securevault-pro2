@@ -60,7 +60,7 @@ export default function 登入頁面() {
             <label className="text-sm font-medium text-slate-300">帳號</label>
             <Input
               type="text"
-              placeholder="請輸入帳號"
+              placeholder="員工編號（6碼）或手機號碼（外包）"
               value={帳號}
               onChange={(e) => set帳號(e.target.value)}
               className="bg-white/10 border-white/20 text-white placeholder:text-slate-500 focus-visible:ring-primary"
