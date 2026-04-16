@@ -4,7 +4,7 @@
  * 所有請求皆帶 JWT Token，Token 存於 localStorage
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001/api";
 
 // ─── Token 管理 ───────────────────────────────────────────────
 export function getToken() {
