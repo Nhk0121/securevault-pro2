@@ -104,7 +104,12 @@ export default function 登入頁面() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-slate-600 mt-6">
+        <div className="flex justify-center mt-4">
+          <a href="/申請帳號" className="text-sm text-slate-400 hover:text-white underline underline-offset-4">
+            申請帳號
+          </a>
+        </div>
+        <p className="text-center text-xs text-slate-600 mt-4">
           © {new Date().getFullYear()} 雲端檔案管理系統 · 僅供內部人員使用
         </p>
       </div>
