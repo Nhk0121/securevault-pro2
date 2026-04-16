@@ -18,8 +18,19 @@ const PORT = process.env.PORT || 3001;
 // 中介軟體設定
 // ============================================================
 app.use(helmet());
+const allowedOrigins = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:3001', 'https://localhost', 'http://127.0.0.1:3001'];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        // 允許無 origin（如 Postman、同源請求）或在白名單內的來源
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS 不允許此來源：' + origin));
+        }
+    },
     credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
