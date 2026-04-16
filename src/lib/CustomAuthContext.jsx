@@ -24,7 +24,7 @@ export const CustomAuthProvider = ({ children }) => {
     }
     try {
       const res = await apiClient.auth.me();
-      const currentUser = res?.data || res;
+      const currentUser = res.data || res;
       setUser(currentUser);
       setIsAuthenticated(true);
       setAuthError(null);
