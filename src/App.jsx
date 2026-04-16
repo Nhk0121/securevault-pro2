@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { CustomAuthProvider as AuthProvider, useAuth } from '@/lib/CustomAuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import 登入頁面 from '@/pages/登入頁面';
 import 歡迎頁面 from '@/pages/歡迎頁面';
