@@ -1,0 +1,48 @@
+{
+  "name": "\u5be9\u6838\u8a18\u9304",
+  "type": "object",
+  "properties": {
+    "\u6a94\u6848ID": {
+      "type": "string",
+      "description": "\u88ab\u5be9\u6838\u7684\u6a94\u6848ID"
+    },
+    "\u6a94\u6848\u540d\u7a31": {
+      "type": "string",
+      "description": "\u88ab\u5be9\u6838\u7684\u6a94\u6848\u540d\u7a31"
+    },
+    "\u7533\u8acb\u8005": {
+      "type": "string",
+      "description": "\u7533\u8acb\u8005\u4fe1\u7bb1"
+    },
+    "\u5be9\u6838\u8005": {
+      "type": "string",
+      "description": "\u5be9\u6838\u8005\u4fe1\u7bb1"
+    },
+    "\u6240\u5c6c\u7d44\u5225": {
+      "type": "string",
+      "description": "\u6240\u5c6c\u7d44\u5225"
+    },
+    "\u5be9\u6838\u72c0\u614b": {
+      "type": "string",
+      "enum": [
+        "\u5f85\u5be9\u6838",
+        "\u5df2\u901a\u904e",
+        "\u5df2\u9000\u56de"
+      ],
+      "default": "\u5f85\u5be9\u6838"
+    },
+    "\u5be9\u6838\u5099\u8a3b": {
+      "type": "string",
+      "description": "\u5be9\u6838\u610f\u898b"
+    },
+    "\u5be9\u6838\u6642\u9593": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "\u6a94\u6848ID",
+    "\u7533\u8acb\u8005",
+    "\u6240\u5c6c\u7d44\u5225"
+  ]
+}
